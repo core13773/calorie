@@ -17,6 +17,6 @@ const kcal = food.nutrients.find((n) => n.nutrient_id === 'energy')?.amount;
 const title = `${foodName} 칼로리 · 영양성분 (100g당) | calorie.monster`;
 const description = food.desc_ko ?? food.desc_en ?? `${foodName}의 칼로리와 영양성분(단백질, 지방, 탄수화물 등)을 100g 기준으로 확인하세요. USDA 식품영양성분 데이터.`;
 ---
-<BaseLayout title={title} description={description} lang="ko" canonicalPath={`/food/${food.slug}`}>
+<BaseLayout title={title} description={description} lang="ko" canonicalPath={`/food/${food.slug}`} enAvailable={!!food.name_en}>
   <FoodDetailPage food={food} lang="ko" />
 </BaseLayout>
