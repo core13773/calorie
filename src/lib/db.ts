@@ -158,7 +158,14 @@ async function loadData(): Promise<DataIndex> {
 }
 
 export async function getData(): Promise<DataIndex> {
-  if (!isDbConfigured) return { foodsBySlug: new Map(), nutrients: new Map() };
+  if (!isDbConfigured) {
+    throw new Error(
+      '\n\n❌ BUILD FAILED: Supabase environment variables are missing.\n' +
+      'Set these as build environment variables (Cloudflare Pages → Settings → Environment variables → PRODUCTION scope):\n' +
+      '  • SUPABASE_URL\n  • SUPABASE_SERVICE_ROLE_KEY\n' +
+      'Then retry the deployment.\n',
+    );
+  }
   if (!dataPromise) dataPromise = loadData();
   return dataPromise;
 }
