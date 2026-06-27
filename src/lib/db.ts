@@ -240,6 +240,7 @@ export async function getRankingFoods(tag: string, limit = 100, lang: 'ko' | 'en
   for (const f of foodsBySlug.values()) {
     if (!f.tags.includes(tag)) continue;
     if (lang === 'en' && !f.name_en) continue;
+    if (lang === 'ko' && !f.name_ko) continue;
     out.push({
       id: f.id, slug: f.slug, name_ko: f.name_ko, name_en: f.name_en, emoji: f.emoji,
       kcal: f.nutrients.find((n) => n.nutrient_id === 'energy')?.amount ?? null,
@@ -306,6 +307,7 @@ export async function getSampleFoods(limit = 12, lang: 'ko' | 'en' = 'ko'): Prom
     .order('slug')
     .limit(limit);
   if (lang === 'en') query = query.not('name_en', 'is', null);
+  else query = query.not('name_ko', 'is', null); // Korean homepage: only Korean-named foods
   const { data, error } = await query;
   if (error) throw error;
   return (data as any[]).map((f) => ({
