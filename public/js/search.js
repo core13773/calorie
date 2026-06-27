@@ -21,7 +21,10 @@
   function render(q) {
     var ql = q.toLowerCase().trim();
     if (!ql) { results.innerHTML = ''; status.textContent = NONE; return; }
-    var hits = DATA.filter(function (f) { return ((f.en || '') + ' ' + (f.ko || '')).toLowerCase().indexOf(ql) >= 0; }).slice(0, 150);
+    var hits = DATA.filter(function (f) {
+      if (!ko && !f.en) return false; // English search: only foods that have an English name
+      return ((f.en || '') + ' ' + (f.ko || '')).toLowerCase().indexOf(ql) >= 0;
+    }).slice(0, 150);
     results.innerHTML = hits.length
       ? hits.map(function (f) { return '<li><a href="' + prefix + f.slug + '">' + nm(f) + '</a>' + (f.k != null ? ' <span class="muted">' + f.k + ' kcal</span>' : '') + '</li>'; }).join('')
       : '<li class="muted">' + (ko ? '결과가 없습니다.' : 'No results.') + '</li>';

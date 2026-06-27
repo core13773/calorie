@@ -3,12 +3,12 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { getCategories, getCategoryBySlug } from '../../../lib/db';
 
 export async function getStaticPaths() {
-  const cats = await getCategories();
+  const cats = await getCategories('en');
   return cats.map((c) => ({ params: { slug: c.slug } }));
 }
 
 const { slug } = Astro.params;
-const data = await getCategoryBySlug(slug!);
+const data = await getCategoryBySlug(slug!, 'en');
 if (!data) return new Response(null, { status: 404 });
 const { category, foods } = data;
 const name = category.name_en ?? category.name_ko ?? category.slug;

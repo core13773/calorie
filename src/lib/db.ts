@@ -190,16 +190,20 @@ export async function getNutrientMeta(): Promise<Map<string, NutrientMeta>> {
   return nutrients;
 }
 
-export async function getCategories(): Promise<CategoryInfo[]> {
+export async function getCategories(lang: 'ko' | 'en' = 'ko'): Promise<CategoryInfo[]> {
   const { categories } = await getData();
-  return categories;
+  // English pages only show categories that have an English name (USDA).
+  return lang === 'en' ? categories.filter((c) => c.name_en) : categories;
 }
 
-export async function getCategoryBySlug(slug: string): Promise<{ category: CategoryInfo; foods: FoodSummary[] } | null> {
+export async function getCategoryBySlug(slug: string, lang: 'ko' | 'en' = 'ko'): Promise<{ category: CategoryInfo; foods: FoodSummary[] } | null> {
   const { categories, foodsByCategorySlug } = await getData();
   const category = categories.find((c) => c.slug === slug);
   if (!category) return null;
-  return { category, foods: foodsByCategorySlug.get(slug) ?? [] };
+  if (lang === 'en' && !category.name_en) return null;
+  let foods = foodsByCategorySlug.get(slug) ?? [];
+  if (lang === 'en') foods = foods.filter((f) => f.name_en);
+  return { category, foods };
 }
 
 export async function getSearchIndex(): Promise<FoodSummary[]> {
@@ -223,7 +227,7 @@ export interface RankingFood extends FoodSummary {
   metric: number | null;
 }
 
-export async function getRankingFoods(tag: string, limit = 100): Promise<RankingFood[]> {
+export async function getRankingFoods(tag: string, limit = 100, lang: 'ko' | 'en' = 'ko'): Promise<RankingFood[]> {
   const metricId: Record<string, string> = {
     'high-protein': 'protein', 'lean-protein': 'protein',
     'low-calorie': 'energy', 'low-fat': 'fat',
@@ -235,6 +239,7 @@ export async function getRankingFoods(tag: string, limit = 100): Promise<Ranking
   const out: RankingFood[] = [];
   for (const f of foodsBySlug.values()) {
     if (!f.tags.includes(tag)) continue;
+    if (lang === 'en' && !f.name_en) continue;
     out.push({
       id: f.id, slug: f.slug, name_ko: f.name_ko, name_en: f.name_en, emoji: f.emoji,
       kcal: f.nutrients.find((n) => n.nutrient_id === 'energy')?.amount ?? null,
@@ -293,13 +298,15 @@ export async function getStats(): Promise<SiteStats> {
   return { configured: true, foodCount: count ?? 0 };
 }
 
-export async function getSampleFoods(limit = 12): Promise<FoodSummary[]> {
+export async function getSampleFoods(limit = 12, lang: 'ko' | 'en' = 'ko'): Promise<FoodSummary[]> {
   if (!supabase) return [];
-  const { data, error } = await supabase
+  let query = supabase
     .from('foods')
     .select('id, slug, name_ko, name_en, emoji, food_nutrients(nutrient_id, amount)')
     .order('slug')
     .limit(limit);
+  if (lang === 'en') query = query.not('name_en', 'is', null);
+  const { data, error } = await query;
   if (error) throw error;
   return (data as any[]).map((f) => ({
     id: f.id,

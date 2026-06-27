@@ -9,7 +9,7 @@ const s = t(lang);
 const stats = await getStats();
 let sample: Awaited<ReturnType<typeof getSampleFoods>> = [];
 if (stats.configured && stats.foodCount > 0) {
-  try { sample = await getSampleFoods(12); } catch { sample = []; }
+  try { sample = await getSampleFoods(12, lang); } catch { sample = []; }
 }
 const foodPrefix = lang === 'ko' ? '/food' : '/en/food';
 const searchPath = lang === 'ko' ? '/search' : '/en/search';

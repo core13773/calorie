@@ -17,7 +17,7 @@ export async function getStaticPaths() {
 const { tag } = Astro.params;
 if (!tag || !TAGS[tag]) return new Response(null, { status: 404 });
 const meta = TAGS[tag];
-const foods = await getRankingFoods(tag, 100);
+const foods = await getRankingFoods(tag, 100, 'en');
 const title = `${meta.en} — Top 100 (per 100g) | calorie.monster`;
 const desc = `${meta.en} sorted by ${meta.sort.toLowerCase()} per 100g. USDA FoodData Central.`;
 ---

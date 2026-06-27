@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { getCategories } from '../../../lib/db';
-const cats = await getCategories();
+const cats = await getCategories('en');
 ---
 <BaseLayout title="Food Categories | calorie.monster" description="Browse foods by category — calories and nutrition per 100g." lang="en" canonicalPath="/en/category">
   <h1>Food Categories</h1>
