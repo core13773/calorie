@@ -55,6 +55,17 @@ const navItems = [
     {import.meta.env.PUBLIC_ADSENSE_CLIENT && (
       <script is:inline async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${import.meta.env.PUBLIC_ADSENSE_CLIENT}`} crossorigin="anonymous"></script>
     )}
+    <script is:inline>
+      (function () {
+        if (location.pathname !== '/') return;
+        try {
+          if (localStorage.getItem('calorie-lang')) return;
+          var L = (navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language || '']);
+          var k = L.some(function (l) { return (l || '').toLowerCase().indexOf('ko') === 0; });
+          if (!k) location.replace('/en' + location.search + location.hash);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <a class="skip" href="#main">{lang === 'ko' ? '본문으로 건너뛰기' : 'Skip to content'}</a>
@@ -84,6 +95,10 @@ const navItems = [
         </p>
       </div>
     </footer>
+    <script is:inline>
+      var lt = document.querySelector('.lang-toggle');
+      if (lt) lt.addEventListener('click', function () { try { localStorage.setItem('calorie-lang', '1'); } catch (e) {} });
+    </script>
   </body>
 </html>
 
