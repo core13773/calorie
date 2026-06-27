@@ -170,8 +170,13 @@ export async function getData(): Promise<DataIndex> {
   return dataPromise;
 }
 
-export async function getFoodSlugs(): Promise<string[]> {
+export async function getFoodSlugs(lang: 'ko' | 'en' = 'ko'): Promise<string[]> {
   const { foodsBySlug } = await getData();
+  // English pages only for foods that have an English name (USDA). Korean dishes
+  // (식약처) have no name_en, so they get Korean pages only — keeps file count down.
+  if (lang === 'en') {
+    return [...foodsBySlug.values()].filter((f) => f.name_en).map((f) => f.slug);
+  }
   return [...foodsBySlug.keys()];
 }
 

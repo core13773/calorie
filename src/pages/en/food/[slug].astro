@@ -4,7 +4,7 @@ import FoodDetailPage from '../../../components/FoodDetailPage.astro';
 import { getFoodSlugs, getFoodDetail } from '../../../lib/db';
 
 export async function getStaticPaths() {
-  const slugs = await getFoodSlugs();
+  const slugs = await getFoodSlugs('en');
   return slugs.map((slug) => ({ params: { slug } }));
 }
 
