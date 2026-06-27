@@ -1,0 +1,38 @@
+name: Refresh data & rebuild
+
+# Monthly: re-run the USDA ETL (updates Supabase) then trigger a Cloudflare Pages
+# rebuild so the site picks up any new/changed foods. Also runnable manually.
+on:
+  schedule:
+    - cron: '23 3 1 * *' # ~03:23 UTC on the 1st of each month
+  workflow_dispatch:
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run USDA ETL → Supabase
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run etl:usda
+
+      - name: Trigger Cloudflare Pages deploy hook
+        env:
+          HOOK: ${{ secrets.CF_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$HOOK" ]; then
+            echo "Triggering Cloudflare Pages rebuild…"
+            curl -fsX POST -d '{}' "$HOOK" || true
+          else
+            echo "CF_DEPLOY_HOOK not set — skipping rebuild trigger."
+          fi
