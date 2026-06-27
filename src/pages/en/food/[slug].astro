@@ -17,6 +17,6 @@ const kcal = food.nutrients.find((n) => n.nutrient_id === 'energy')?.amount;
 const title = `${foodName} Calories & Nutrition Facts (per 100g) | calorie.monster`;
 const description = food.desc_en ?? food.desc_ko ?? `Calories and nutrition facts for ${foodName} per 100g — protein, fat, carbs and more. USDA FoodData Central.`;
 ---
-<BaseLayout title={title} description={description} lang="en" canonicalPath={`/en/food/${food.slug}`}>
+<BaseLayout title={title} description={description} lang="en" canonicalPath={`/en/food/${food.slug}`} koAvailable={!!food.name_ko}>
   <FoodDetailPage food={food} lang="en" />
 </BaseLayout>

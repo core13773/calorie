@@ -22,7 +22,8 @@
     var ql = q.toLowerCase().trim();
     if (!ql) { results.innerHTML = ''; status.textContent = NONE; return; }
     var hits = DATA.filter(function (f) {
-      if (!ko && !f.en) return false; // English search: only foods that have an English name
+      if (ko && !f.ko) return false;   // Korean search: only Korean-named foods
+      if (!ko && !f.en) return false;  // English search: only English-named foods
       return ((f.en || '') + ' ' + (f.ko || '')).toLowerCase().indexOf(ql) >= 0;
     }).slice(0, 150);
     results.innerHTML = hits.length

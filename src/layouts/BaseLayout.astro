@@ -9,7 +9,7 @@ interface Props {
   canonicalPath?: string;
 }
 
-const { title, description = '식품 영양성분과 칼로리를 검색하세요. USDA + 식약처 데이터 기반.', lang = 'ko', canonicalPath = '', enAvailable = true } = Astro.props;
+const { title, description = '식품 영양성분과 칼로리를 검색하세요. USDA + 식약처 데이터 기반.', lang = 'ko', canonicalPath = '', enAvailable = true, koAvailable = true } = Astro.props;
 const cp = canonicalPath || Astro.url.pathname;
 const canonical = new URL(cp, SITE_URL).href;
 const isEn = cp.startsWith('/en');
@@ -19,8 +19,9 @@ const koUrl = new URL(koPath, SITE_URL).href;
 const enUrl = new URL(enPath, SITE_URL).href;
 // Language toggle: go to the equivalent page in the other language. Korean-only
 // pages (식약처 foods, no English version) fall back to the English homepage.
-const toggleHref = isEn ? koPath : (enAvailable ? enPath : '/en');
-const showEn = isEn || enAvailable;
+const toggleHref = isEn ? (koAvailable ? koPath : '/') : (enAvailable ? enPath : '/en');
+const hasKo = !isEn || koAvailable;
+const hasEn = isEn || enAvailable;
 const home = lang === 'ko' ? '/' : '/en';
 const navItems = [
   { href: home, icon: '🏠', label: lang === 'ko' ? '홈' : 'Home' },
@@ -38,9 +39,9 @@ const navItems = [
     <meta name="description" content={description} />
     <meta name="theme-color" content="#16a34a" />
     <link rel="canonical" href={canonical} />
-    <link rel="alternate" hreflang="ko" href={koUrl} />
-    {showEn && <link rel="alternate" hreflang="en" href={enUrl} />}
-    <link rel="alternate" hreflang="x-default" href={koUrl} />
+    {hasKo && <link rel="alternate" hreflang="ko" href={koUrl} />}
+    {hasEn && <link rel="alternate" hreflang="en" href={enUrl} />}
+    <link rel="alternate" hreflang="x-default" href={hasKo ? koUrl : enUrl} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:title" content={title} />

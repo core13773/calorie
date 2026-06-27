@@ -172,12 +172,10 @@ export async function getData(): Promise<DataIndex> {
 
 export async function getFoodSlugs(lang: 'ko' | 'en' = 'ko'): Promise<string[]> {
   const { foodsBySlug } = await getData();
-  // English pages only for foods that have an English name (USDA). Korean dishes
-  // (식약처) have no name_en, so they get Korean pages only — keeps file count down.
-  if (lang === 'en') {
-    return [...foodsBySlug.values()].filter((f) => f.name_en).map((f) => f.slug);
-  }
-  return [...foodsBySlug.keys()];
+  // Complete language separation: Korean pages only for Korean-named foods (식약처),
+  // English pages only for English-named foods (USDA).
+  const want = lang === 'en' ? 'name_en' : 'name_ko';
+  return [...foodsBySlug.values()].filter((f) => f[want]).map((f) => f.slug);
 }
 
 export async function getFoodDetail(slug: string): Promise<FoodDetail | null> {
@@ -192,17 +190,17 @@ export async function getNutrientMeta(): Promise<Map<string, NutrientMeta>> {
 
 export async function getCategories(lang: 'ko' | 'en' = 'ko'): Promise<CategoryInfo[]> {
   const { categories } = await getData();
-  // English pages only show categories that have an English name (USDA).
-  return lang === 'en' ? categories.filter((c) => c.name_en) : categories;
+  // Complete separation: Korean categories (name_ko) on Korean site, English (name_en) on English.
+  return categories.filter((c) => (lang === 'en' ? c.name_en : c.name_ko));
 }
 
 export async function getCategoryBySlug(slug: string, lang: 'ko' | 'en' = 'ko'): Promise<{ category: CategoryInfo; foods: FoodSummary[] } | null> {
   const { categories, foodsByCategorySlug } = await getData();
   const category = categories.find((c) => c.slug === slug);
   if (!category) return null;
-  if (lang === 'en' && !category.name_en) return null;
-  let foods = foodsByCategorySlug.get(slug) ?? [];
-  if (lang === 'en') foods = foods.filter((f) => f.name_en);
+  if (lang === 'en' ? !category.name_en : !category.name_ko) return null;
+  const want = lang === 'en' ? 'name_en' : 'name_ko';
+  const foods = (foodsByCategorySlug.get(slug) ?? []).filter((f) => f[want]);
   return { category, foods };
 }
 
@@ -255,8 +253,8 @@ export async function getRankingFoods(tag: string, limit = 100, lang: 'ko' | 'en
   return out.slice(0, limit);
 }
 
-// Curated popular foods for comparison pages (matched by USDA description).
-const POPULAR_KEYWORDS = [
+// Curated popular foods for comparison pages, per language.
+const POPULAR_KEYWORDS_EN = [
   'Bananas, raw', 'Egg, whole, raw', 'Rice, white', 'Chicken, breast, meat only, raw',
   'Milk, whole', 'Bread, wheat', 'Apples, raw, with skin', 'Potatoes, raw',
   'Fish, salmon', 'Beef, grass-fed', 'Pork, fresh, loin', 'Fish, tuna, fresh',
@@ -265,17 +263,25 @@ const POPULAR_KEYWORDS = [
   'Peanut butter', 'Cheese, cheddar', 'Spinach, raw', 'Sweet potato, raw',
   'Tofu, raw', 'Crustaceans, shrimp',
 ];
+const POPULAR_KEYWORDS_KO = [
+  '김치찌개', '된장찌개', '불고기', '비빔밥', '삼겹살', '김밥', '떡볶이', '라면',
+  '삼계탕', '갈비탕', '잡채', '김치', '쌀밥', '계란찜', '돈까스', '제육볶음',
+  '치킨', '피자', '햄버거', '샐러드', '두부', '고구마', '감자', '계란',
+];
 
-export async function getPopularFoods(): Promise<FoodDetail[]> {
+export async function getPopularFoods(lang: 'ko' | 'en' = 'en'): Promise<FoodDetail[]> {
   const { foodsBySlug } = await getData();
   const all = [...foodsBySlug.values()];
+  const field: 'name_ko' | 'name_en' = lang === 'ko' ? 'name_ko' : 'name_en';
+  const kws = lang === 'ko' ? POPULAR_KEYWORDS_KO : POPULAR_KEYWORDS_EN;
   const out: FoodDetail[] = [];
-  for (const kw of POPULAR_KEYWORDS) {
+  for (const kw of kws) {
     const kwl = kw.toLowerCase();
     let best: FoodDetail | null = null;
     for (const f of all) {
-      if (f.name_en && f.name_en.toLowerCase().includes(kwl)) {
-        if (!best || f.name_en.length < best.name_en!.length) best = f;
+      const name = f[field];
+      if (name && name.toLowerCase().includes(kwl)) {
+        if (!best || name.length < (best[field] as string)!.length) best = f;
       }
     }
     if (best && !out.find((x) => x.id === best!.id)) out.push(best);

@@ -3,7 +3,7 @@ import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { getPopularFoods, getComparePair } from '../../../lib/db';
 
 export async function getStaticPaths() {
-  const pop = await getPopularFoods();
+  const pop = await getPopularFoods('en');
   const paths: any[] = [];
   for (let i = 0; i < pop.length; i++) {
     for (let j = i + 1; j < pop.length; j++) {
