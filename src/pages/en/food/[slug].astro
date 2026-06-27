@@ -1,0 +1,22 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import FoodDetailPage from '../../../components/FoodDetailPage.astro';
+import { getFoodSlugs, getFoodDetail } from '../../../lib/db';
+
+export async function getStaticPaths() {
+  const slugs = await getFoodSlugs();
+  return slugs.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const food = await getFoodDetail(slug!);
+if (!food) return new Response(null, { status: 404 });
+
+const foodName = food.name_en ?? food.name_ko ?? food.slug;
+const kcal = food.nutrients.find((n) => n.nutrient_id === 'energy')?.amount;
+const title = `${foodName} Calories & Nutrition Facts (per 100g) | calorie.monster`;
+const description = food.desc_en ?? food.desc_ko ?? `Calories and nutrition facts for ${foodName} per 100g — protein, fat, carbs and more. USDA FoodData Central.`;
+---
+<BaseLayout title={title} description={description} lang="en" canonicalPath={`/en/food/${food.slug}`}>
+  <FoodDetailPage food={food} lang="en" />
+</BaseLayout>

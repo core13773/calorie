@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getRankingFoods } from '../../../lib/db';
+
+const TAGS: Record<string, { en: string; sort: string; unit: string }> = {
+  'high-protein': { en: 'High-protein foods', sort: 'Most protein', unit: 'g' },
+  'low-calorie': { en: 'Low-calorie foods', sort: 'Fewest calories', unit: 'kcal' },
+  'low-fat': { en: 'Low-fat foods', sort: 'Least fat', unit: 'g' },
+  'high-fiber': { en: 'High-fiber foods', sort: 'Most fiber', unit: 'g' },
+  'lean-protein': { en: 'Lean-protein foods', sort: 'Most protein', unit: 'g' },
+};
+
+export async function getStaticPaths() {
+  return ['high-protein', 'low-calorie', 'low-fat', 'high-fiber', 'lean-protein'].map((tag) => ({ params: { tag } }));
+}
+
+const { tag } = Astro.params;
+if (!tag || !TAGS[tag]) return new Response(null, { status: 404 });
+const meta = TAGS[tag];
+const foods = await getRankingFoods(tag, 100);
+const title = `${meta.en} — Top 100 (per 100g) | calorie.monster`;
+const desc = `${meta.en} sorted by ${meta.sort.toLowerCase()} per 100g. USDA FoodData Central.`;
+---
+<BaseLayout title={title} description={desc} lang="en" canonicalPath={`/en/ranking/${tag}`}>
+  <nav class="crumbs"><a href="/en/ranking">Rankings</a> › <span>{meta.en}</span></nav>
+  <h1>{meta.en} — Top 100</h1>
+  <p class="muted">{meta.sort} · per 100g · {foods.length} foods</p>
+  <ol class="rank">
+    {foods.map((f, i) => (
+      <li><span class="num">{i + 1}</span> <a href={`/en/food/${f.slug}`}>{f.name_en ?? f.name_ko ?? f.slug}</a> <span class="muted">{f.metric ?? '—'} {meta.unit} · {f.kcal ?? '—'} kcal</span></li>
+    ))}
+  </ol>
+</BaseLayout>
+<style>
+  .crumbs { font-size: .85rem; color: #888; }
+  .rank { list-style: none; padding: 0; }
+  .rank li { padding: .55rem 0; border-bottom: 1px solid #f3f3f3; display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+  .rank .num { display: inline-block; min-width: 2rem; color: #888; font-variant-numeric: tabular-nums; }
+  .rank a { text-decoration: none; }
+</style>

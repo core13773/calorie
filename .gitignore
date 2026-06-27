@@ -1,0 +1,23 @@
+# build output
+dist/
+.astro/
+
+# dependencies
+node_modules/
+
+# secrets — NEVER commit
+.env
+.env.local
+.env.*.local
+
+# data dumps from ETL (large, regenerable)
+etl/data/
+etl/out/
+
+# logs
+*.log
+npm-debug.log*
+
+# os
+.DS_Store
+Thumbs.db

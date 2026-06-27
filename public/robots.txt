@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://calorie.monster/sitemap-index.xml

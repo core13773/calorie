@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getCategories } from '../../../lib/db';
+const cats = await getCategories();
+---
+<BaseLayout title="Food Categories | calorie.monster" description="Browse foods by category — calories and nutrition per 100g." lang="en" canonicalPath="/en/category">
+  <h1>Food Categories</h1>
+  <ul class="catlist">
+    {cats.map((c) => (
+      <li><a href={`/en/category/${c.slug}`}>{c.name_en ?? c.name_ko ?? c.slug}</a> <span class="muted">{c.count}</span></li>
+    ))}
+  </ul>
+</BaseLayout>
+<style>
+  .catlist { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: .5rem; }
+  .catlist li { padding: .6rem .8rem; border: 1px solid #eee; border-radius: 8px; }
+</style>

@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getPopularFoods, getComparePair } from '../../../lib/db';
+
+export async function getStaticPaths() {
+  const pop = await getPopularFoods();
+  const paths: any[] = [];
+  for (let i = 0; i < pop.length; i++) {
+    for (let j = i + 1; j < pop.length; j++) {
+      paths.push({ params: { pair: `${pop[i].slug}__${pop[j].slug}` } });
+    }
+  }
+  return paths;
+}
+
+const { pair } = Astro.params;
+const [sa, sb] = (pair!).split('__');
+const data = await getComparePair(sa, sb);
+if (!data) return new Response(null, { status: 404 });
+const { a, b } = data;
+
+const ROWS: [string, string, string][] = [
+  ['energy', 'Calories', 'kcal'], ['protein', 'Protein', 'g'], ['fat', 'Fat', 'g'], ['satFat', 'Saturated fat', 'g'],
+  ['carb', 'Carbs', 'g'], ['fiber', 'Fiber', 'g'], ['sugars', 'Sugar', 'g'],
+  ['calcium', 'Calcium', 'mg'], ['iron', 'Iron', 'mg'], ['potassium', 'Potassium', 'mg'], ['sodium', 'Sodium', 'mg'],
+];
+const v = (f: any, id: string) => f.nutrients.find((n: any) => n.nutrient_id === id)?.amount ?? null;
+const na = a.name_en ?? a.slug;
+const nb = b.name_en ?? b.slug;
+const title = `${na} vs ${nb} — Calories & Nutrition Comparison | calorie.monster`;
+const desc = `Compare ${na} vs ${nb}: calories, protein, fat, carbs and more per 100g.`;
+---
+<BaseLayout title={title} description={desc} lang="en" canonicalPath={`/en/compare/${pair}`}>
+  <h1>{na} vs {nb}</h1>
+  <p class="muted">Nutrition comparison · per 100g · <a href={`/en/food/${a.slug}`}>{na}</a> · <a href={`/en/food/${b.slug}`}>{nb}</a></p>
+  <table class="cmp">
+    <thead><tr><th>Nutrient</th><th>{na}</th><th>{nb}</th></tr></thead>
+    <tbody>
+      {ROWS.map(([id, label, unit]) => {
+        const va = v(a, id); const vb = v(b, id);
+        return (
+          <tr>
+            <td>{label}</td>
+            <td class={va != null && vb != null && va > vb ? 'hi' : ''}>{va != null ? `${va} ${unit}` : '—'}</td>
+            <td class={va != null && vb != null && vb > va ? 'hi' : ''}>{vb != null ? `${vb} ${unit}` : '—'}</td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+  <p class="muted small">Green = higher amount. For reference only — not medical or nutritional advice.</p>
+</BaseLayout>
+<style>
+  .cmp { width: 100%; border-collapse: collapse; }
+  .cmp th, .cmp td { padding: .55rem .6rem; border-bottom: 1px solid #eee; text-align: left; }
+  .cmp th { background: #fafafa; }
+  .cmp td.hi { background: #e8f5e9; font-weight: 700; }
+</style>

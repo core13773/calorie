@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+const TAGS: [string, string, string][] = [
+  ['high-protein', 'High-protein foods — Top 100', 'Foods highest in protein per 100g'],
+  ['low-calorie', 'Low-calorie foods — Top 100', 'Lowest-calorie foods'],
+  ['low-fat', 'Low-fat foods — Top 100', 'Foods lowest in fat'],
+  ['high-fiber', 'High-fiber foods — Top 100', 'Foods richest in dietary fiber'],
+  ['lean-protein', 'Lean-protein foods — Top 100', 'High-protein, low-fat foods'],
+];
+---
+<BaseLayout title="Food Nutrition Rankings | calorie.monster" description="Food rankings by protein, calories, fiber and more per 100g." lang="en" canonicalPath="/en/ranking">
+  <h1>Food Nutrition Rankings</h1>
+  <ul class="ranklist">
+    {TAGS.map(([slug, title, desc]) => (
+      <li><a href={`/en/ranking/${slug}`}><strong>{title}</strong></a><span class="muted">{desc}</span></li>
+    ))}
+  </ul>
+</BaseLayout>
+<style>
+  .ranklist { list-style: none; padding: 0; }
+  .ranklist li { padding: .9rem 0; border-bottom: 1px solid #eee; }
+  .ranklist a { display: block; font-size: 1.05rem; text-decoration: none; }
+</style>

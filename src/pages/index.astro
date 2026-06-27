@@ -1,0 +1,9 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HomePage from '../components/HomePage.astro';
+const title = '칼로리 · 식품 영양성분 검색 | calorie.monster';
+const description = '음식별 칼로리와 영양성분(단백질, 탄수화물, 지방 등)을 100g 기준으로 검색하세요. USDA 식품영양성분 데이터 기반의 무료 한국어 식품 정보.';
+---
+<BaseLayout title={title} description={description} lang="ko" canonicalPath="/">
+  <HomePage lang="ko" />
+</BaseLayout>

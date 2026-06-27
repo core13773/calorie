@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPopularFoods, getComparePair } from '../../lib/db';
+
+export async function getStaticPaths() {
+  const pop = await getPopularFoods();
+  const paths: any[] = [];
+  for (let i = 0; i < pop.length; i++) {
+    for (let j = i + 1; j < pop.length; j++) {
+      paths.push({ params: { pair: `${pop[i].slug}__${pop[j].slug}` } });
+    }
+  }
+  return paths;
+}
+
+const { pair } = Astro.params;
+const [sa, sb] = (pair!).split('__');
+const data = await getComparePair(sa, sb);
+if (!data) return new Response(null, { status: 404 });
+const { a, b } = data;
+
+const ROWS: [string, string, string][] = [
+  ['energy', '칼로리', 'kcal'], ['protein', '단백질', 'g'], ['fat', '지방', 'g'], ['satFat', '포화지방', 'g'],
+  ['carb', '탄수화물', 'g'], ['fiber', '식이섬유', 'g'], ['sugars', '당류', 'g'],
+  ['calcium', '칼슘', 'mg'], ['iron', '철', 'mg'], ['potassium', '칼륨', 'mg'], ['sodium', '나트륨', 'mg'],
+];
+const v = (f: any, id: string) => f.nutrients.find((n: any) => n.nutrient_id === id)?.amount ?? null;
+const na = a.name_en ?? a.slug;
+const nb = b.name_en ?? b.slug;
+const title = `${na} vs ${nb} 칼로리·영양성분 비교 | calorie.monster`;
+const desc = `${na}와(과) ${nb}의 칼로리·단백질·지방·탄수화물 등 영양성분을 100g 기준으로 비교하세요.`;
+---
+<BaseLayout title={title} description={desc} lang="ko" canonicalPath={`/compare/${pair}`}>
+  <h1>{na} vs {nb}</h1>
+  <p class="muted">영양성분 비교 · 100g당 · <a href={`/food/${a.slug}`}>{na} 상세</a> · <a href={`/food/${b.slug}`}>{nb} 상세</a></p>
+  <table class="cmp">
+    <thead><tr><th>영양소</th><th>{na}</th><th>{nb}</th></tr></thead>
+    <tbody>
+      {ROWS.map(([id, label, unit]) => {
+        const va = v(a, id); const vb = v(b, id);
+        return (
+          <tr>
+            <td>{label}</td>
+            <td class={va != null && vb != null && va > vb ? 'hi' : ''}>{va != null ? `${va} ${unit}` : '—'}</td>
+            <td class={va != null && vb != null && vb > va ? 'hi' : ''}>{vb != null ? `${vb} ${unit}` : '—'}</td>
+          </tr>
+        );
+      })}
+    </tbody>
+  </table>
+  <p class="muted small">초록색 = 더 높은 함량. 본 서비스는 참고용이며 의료/영양 조언이 아닙니다.</p>
+</BaseLayout>
+<style>
+  .cmp { width: 100%; border-collapse: collapse; }
+  .cmp th, .cmp td { padding: .55rem .6rem; border-bottom: 1px solid #eee; text-align: left; }
+  .cmp th { background: #fafafa; }
+  .cmp td.hi { background: #e8f5e9; font-weight: 700; }
+</style>

@@ -1,0 +1,40 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getRankingFoods } from '../../lib/db';
+
+const TAGS: Record<string, { ko: string; sort: string; unit: string }> = {
+  'high-protein': { ko: '고단백 식품', sort: '단백질 많은 순', unit: 'g' },
+  'low-calorie': { ko: '저칼로리 식품', sort: '칼로리 낮은 순', unit: 'kcal' },
+  'low-fat': { ko: '저지방 식품', sort: '지방 적은 순', unit: 'g' },
+  'high-fiber': { ko: '고식이섬유 식품', sort: '식이섬유 많은 순', unit: 'g' },
+  'lean-protein': { ko: '저지방 고단백 식품', sort: '단백질 많은 순', unit: 'g' },
+};
+
+export async function getStaticPaths() {
+  return ['high-protein', 'low-calorie', 'low-fat', 'high-fiber', 'lean-protein'].map((tag) => ({ params: { tag } }));
+}
+
+const { tag } = Astro.params;
+if (!tag || !TAGS[tag]) return new Response(null, { status: 404 });
+const meta = TAGS[tag];
+const foods = await getRankingFoods(tag, 100);
+const title = `${meta.ko} TOP 100 - 칼로리·영양성분 | calorie.monster`;
+const desc = `${meta.ko}을(를) ${meta.sort}로 정렬한 목록 (100g당 영양성분, USDA 데이터).`;
+---
+<BaseLayout title={title} description={desc} lang="ko" canonicalPath={`/ranking/${tag}`}>
+  <nav class="crumbs"><a href="/ranking">랭킹</a> › <span>{meta.ko}</span></nav>
+  <h1>{meta.ko} TOP 100</h1>
+  <p class="muted">{meta.sort} · 100g당 · 총 {foods.length}종</p>
+  <ol class="rank">
+    {foods.map((f, i) => (
+      <li><span class="num">{i + 1}</span> <a href={`/food/${f.slug}`}>{f.name_ko ?? f.name_en ?? f.slug}</a> <span class="muted">{f.metric ?? '—'} {meta.unit} · {f.kcal ?? '—'} kcal</span></li>
+    ))}
+  </ol>
+</BaseLayout>
+<style>
+  .crumbs { font-size: .85rem; color: #888; }
+  .rank { list-style: none; padding: 0; }
+  .rank li { padding: .55rem 0; border-bottom: 1px solid #f3f3f3; display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+  .rank .num { display: inline-block; min-width: 2rem; color: #888; font-variant-numeric: tabular-nums; }
+  .rank a { text-decoration: none; }
+</style>

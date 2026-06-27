@@ -1,0 +1,32 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getCategories, getCategoryBySlug } from '../../../lib/db';
+
+export async function getStaticPaths() {
+  const cats = await getCategories();
+  return cats.map((c) => ({ params: { slug: c.slug } }));
+}
+
+const { slug } = Astro.params;
+const data = await getCategoryBySlug(slug!);
+if (!data) return new Response(null, { status: 404 });
+const { category, foods } = data;
+const name = category.name_en ?? category.name_ko ?? category.slug;
+const title = `${name} — Calories & Nutrition Facts | calorie.monster`;
+const desc = `${category.count} ${name.toLowerCase()} with calories and nutrition facts per 100g. USDA FoodData Central.`;
+---
+<BaseLayout title={title} description={desc} lang="en" canonicalPath={`/en/category/${category.slug}`}>
+  <nav class="crumbs"><a href="/en/category">Categories</a> › <span>{name}</span></nav>
+  <h1>{name} <span class="muted">({category.count})</span></h1>
+  <ul class="foodgrid">
+    {foods.map((f) => (
+      <li><a href={`/en/food/${f.slug}`}>{f.name_en ?? f.name_ko ?? f.slug}</a>{f.kcal != null && <span class="muted"> {f.kcal} kcal</span>}</li>
+    ))}
+  </ul>
+</BaseLayout>
+<style>
+  .crumbs { font-size: .85rem; color: #888; }
+  .foodgrid { list-style: none; padding: 0; columns: 2; column-gap: 2rem; }
+  .foodgrid li { padding: .3rem 0; break-inside: avoid; }
+  @media (max-width: 600px) { .foodgrid { columns: 1; } }
+</style>

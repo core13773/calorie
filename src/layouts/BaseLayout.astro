@@ -1,0 +1,68 @@
+---
+import { SITE_NAME, SITE_URL } from '../consts';
+
+interface Props {
+  title: string;
+  description?: string;
+  lang?: 'ko' | 'en';
+  canonicalPath?: string;
+}
+
+const { title, description = '식품 영양성분과 칼로리를 검색하세요. USDA + 식약처 데이터 기반.', lang = 'ko', canonicalPath = '' } = Astro.props;
+const cp = canonicalPath || Astro.url.pathname;
+const canonical = new URL(cp, SITE_URL).href;
+const isEn = cp.startsWith('/en');
+const koPath = isEn ? (cp.slice(3) || '/') : cp;
+const enPath = isEn ? cp : '/en' + (cp === '/' ? '' : cp);
+const koUrl = new URL(koPath, SITE_URL).href;
+const enUrl = new URL(enPath, SITE_URL).href;
+---
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="alternate" hreflang="ko" href={koUrl} />
+    <link rel="alternate" hreflang="en" href={enUrl} />
+    <link rel="alternate" hreflang="x-default" href={koUrl} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={lang === 'ko' ? 'ko_KR' : 'en_US'} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body>
+    <header>
+      <a href="/" style="font-weight:700">🥗 {SITE_NAME}</a>
+      <nav>
+        <a href={lang === 'ko' ? '/' : '/en'}>{lang === 'ko' ? '홈' : 'Home'}</a>
+        <a href={lang === 'ko' ? '/category' : '/en/category'}>{lang === 'ko' ? '카테고리' : 'Categories'}</a>
+        <a href={lang === 'ko' ? '/ranking' : '/en/ranking'}>{lang === 'ko' ? '랭킹' : 'Rankings'}</a>
+        <a href={lang === 'ko' ? '/search' : '/en/search'}>{lang === 'ko' ? '검색' : 'Search'}</a>
+        <a href={isEn ? '/' : '/en'}>{isEn ? '한국어' : 'English'}</a>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer>
+      <p>© {new Date().getFullYear()} {SITE_NAME} · <a href={lang === 'ko' ? '/' : '/en'}>{lang === 'ko' ? '출처: USDA FoodData Central (미국 공공데이터)' : 'Data: USDA FoodData Central (U.S. public domain)'}</a></p>
+    </footer>
+  </body>
+</html>
+
+<style>
+  :global(body) { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; margin: 0; color: #1a1a1a; line-height: 1.6; }
+  :global(a) { color: #1677ff; }
+  :global(.muted) { color: #888; font-size: .85rem; }
+  header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid #eee; max-width: 1100px; margin: 0 auto; flex-wrap: wrap; gap: .5rem; }
+  header nav a { margin-left: 1rem; text-decoration: none; }
+  main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+  footer { max-width: 1100px; margin: 0 auto; padding: 1.5rem; border-top: 1px solid #eee; color: #888; font-size: .85rem; }
+</style>

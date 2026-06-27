@@ -1,0 +1,55 @@
+---
+import type { Lang } from '../i18n/ui';
+import { t } from '../i18n/ui';
+import { getStats, getSampleFoods } from '../lib/db';
+
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const s = t(lang);
+const stats = await getStats();
+let sample: Awaited<ReturnType<typeof getSampleFoods>> = [];
+if (stats.configured && stats.foodCount > 0) {
+  try { sample = await getSampleFoods(12); } catch { sample = []; }
+}
+const foodPrefix = lang === 'ko' ? '/food' : '/en/food';
+const searchPath = lang === 'ko' ? '/search' : '/en/search';
+const catPath = lang === 'ko' ? '/category' : '/en/category';
+const intro = lang === 'ko'
+  ? '음식별 칼로리, 단백질, 탄수화물, 지방 등 영양성분을 100g 기준으로 확인하세요.'
+  : 'Look up calories, protein, carbs, fat and more per 100g for thousands of foods.';
+---
+<section>
+  <h1>{s.tagline}</h1>
+  <p>{intro}</p>
+  <form action={searchPath} method="get" role="search" class="searchbar">
+    <input type="search" name="q" placeholder={s.searchPlaceholder} aria-label={s.search} />
+    <button type="submit">{s.search}</button>
+  </form>
+
+  {stats.configured ? (
+    <p class="stat">✅ {lang === 'ko' ? '데이터베이스 연결됨 · 등록된 식품 ' : 'Database connected · '}<strong>{stats.foodCount.toLocaleString()}</strong>{lang === 'ko' ? '개' : ' foods'}</p>
+  ) : (
+    <p class="stat">⚠️ DB not configured</p>
+  )}
+
+  {sample.length > 0 && (
+    <>
+      <h2>{s.popularFoods}</h2>
+      <ul class="foodgrid">
+        {sample.map((f) => (
+          <li><a href={`${foodPrefix}/${f.slug}`}>{f.emoji ?? '🍽️'} {lang === 'ko' ? (f.name_ko ?? f.name_en) : (f.name_en ?? f.name_ko) ?? f.slug}</a>{f.kcal != null && <span class="muted"> {f.kcal} kcal</span>}</li>
+        ))}
+      </ul>
+      <p class="more"><a href={catPath}>{lang === 'ko' ? '모든 카테고리 보기 →' : 'Browse all categories →'}</a></p>
+    </>
+  )}
+</section>
+<style>
+  .searchbar { display: flex; gap: .5rem; margin: 1rem 0 1.5rem; }
+  .searchbar input { flex: 1; padding: .7rem .9rem; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
+  .searchbar button { padding: .7rem 1.4rem; border: none; background: #1677ff; color: #fff; border-radius: 8px; cursor: pointer; font-size: 1rem; }
+  .stat { color: #555; }
+  .foodgrid { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: .5rem; }
+  .foodgrid li { padding: .6rem .8rem; border: 1px solid #eee; border-radius: 8px; }
+  .more { margin-top: 1rem; }
+</style>

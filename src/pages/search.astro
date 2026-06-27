@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { strings } from '../i18n/ui';
+const s = strings.ko;
+const q = Astro.url.searchParams.get('q') ?? '';
+---
+<BaseLayout title="식품 검색 | calorie.monster" description="음식 이름으로 칼로리와 영양성분을 검색하세요. 7,000종 이상의 USDA 식품 데이터베이스." lang="ko" canonicalPath="/search">
+  <h1>식품 검색</h1>
+  <input id="q" type="search" data-prefix="/food/" placeholder={s.searchPlaceholder} value={q} autocomplete="off" aria-label={s.search} />
+  <p id="status" class="muted"></p>
+  <ul id="results" class="foodgrid"></ul>
+</BaseLayout>
+<script src="/js/search.js" defer></script>
+<style>
+  #q { width: 100%; padding: .7rem .9rem; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; margin-bottom: 1rem; }
+  .foodgrid { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: .3rem; }
+</style>

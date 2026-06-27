@@ -1,0 +1,17 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCategories } from '../../lib/db';
+const cats = await getCategories();
+---
+<BaseLayout title="식품 카테고리 | calorie.monster" description="식품 카테고리별로 칼로리와 영양성분을 탐색하세요." lang="ko" canonicalPath="/category">
+  <h1>식품 카테고리</h1>
+  <ul class="catlist">
+    {cats.map((c) => (
+      <li><a href={`/category/${c.slug}`}>{c.name_ko ?? c.name_en ?? c.slug}</a> <span class="muted">{c.count}종</span></li>
+    ))}
+  </ul>
+</BaseLayout>
+<style>
+  .catlist { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px,1fr)); gap: .5rem; }
+  .catlist li { padding: .6rem .8rem; border: 1px solid #eee; border-radius: 8px; }
+</style>

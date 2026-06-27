@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const TAGS: [string, string, string][] = [
+  ['high-protein', '고단백 식품 TOP 100', '단백질 함량이 높은 식품 (100g당)'],
+  ['low-calorie', '저칼로리 식품 TOP 100', '칼로리가 낮은 다이어트 식품'],
+  ['low-fat', '저지방 식품 TOP 100', '지방 함량이 낮은 식품'],
+  ['high-fiber', '고식이섬유 식품 TOP 100', '식이섬유가 풍부한 식품'],
+  ['lean-protein', '저지방 고단백 식품 TOP 100', '다이어트에 좋은 고단백·저지방 식품'],
+];
+---
+<BaseLayout title="식품 영양성분 랭킹 | calorie.monster" description="단백질, 칼로리, 식이섬유 등 기준별 식품 영양성분 랭킹." lang="ko" canonicalPath="/ranking">
+  <h1>식품 영양성분 랭킹</h1>
+  <ul class="ranklist">
+    {TAGS.map(([slug, title, desc]) => (
+      <li><a href={`/ranking/${slug}`}><strong>{title}</strong></a><span class="muted">{desc}</span></li>
+    ))}
+  </ul>
+</BaseLayout>
+<style>
+  .ranklist { list-style: none; padding: 0; }
+  .ranklist li { padding: .9rem 0; border-bottom: 1px solid #eee; }
+  .ranklist a { display: block; font-size: 1.05rem; text-decoration: none; }
+</style>

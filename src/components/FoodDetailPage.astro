@@ -1,0 +1,197 @@
+---
+import type { Lang } from '../i18n/ui';
+import { t } from '../i18n/ui';
+import { getNutrientMeta, type FoodDetail } from '../lib/db';
+import { SOURCES } from '../consts';
+
+interface Props { food: FoodDetail; lang: Lang }
+const { food, lang } = Astro.props;
+const s = t(lang);
+
+const meta = await getNutrientMeta();
+
+// nutrient display order: macros first, then minerals, then vitamins
+const ORDER = ['energy','protein','fat','satFat','carb','sugars','fiber','cholesterol','calcium','iron','magnesium','phosphorus','potassium','sodium','zinc','vitA','vitC','vitE','vitB6','folate'];
+
+const val = (id: string): number | null => food.nutrients.find((n) => n.nutrient_id === id)?.amount ?? null;
+const kcal = val('energy');
+const protein = val('protein');
+const fat = val('fat');
+const carb = val('carb');
+
+// macro energy contribution %
+let pPct = 33, fPct = 33, cPct = 34;
+const pE = (protein ?? 0) * 4, fE = (fat ?? 0) * 9, cE = (carb ?? 0) * 4;
+const tot = pE + fE + cE;
+if (tot > 0) { pPct = Math.round(pE / tot * 100); fPct = Math.round(fE / tot * 100); cPct = Math.max(0, 100 - pPct - fPct); }
+
+const rows = ORDER
+  .map((id) => {
+    const m = meta.get(id);
+    const nrow = food.nutrients.find((x) => x.nutrient_id === id);
+    return { id, label: m ? (lang === 'ko' ? (m.name_ko ?? m.name_en) : (m.name_en ?? m.name_ko)) : id, unit: nrow?.unit ?? '', value: nrow?.amount ?? null };
+  })
+  .filter((r) => r.value != null);
+
+const foodName = (lang === 'ko' ? (food.name_ko ?? food.name_en) : (food.name_en ?? food.name_ko)) ?? food.slug;
+const desc = (lang === 'ko' ? (food.desc_ko ?? food.desc_en) : (food.desc_en ?? food.desc_ko)) ?? '';
+
+const tagLabel: Record<string, { ko: string; en: string }> = {
+  'high-protein': { ko: '고단백', en: 'High protein' },
+  'low-calorie': { ko: '저칼로리', en: 'Low calorie' },
+  'low-fat': { ko: '저지방', en: 'Low fat' },
+  'high-fiber': { ko: '고식이섬유', en: 'High fiber' },
+  'high-sugar': { ko: '고당류', en: 'High sugar' },
+  'high-sodium': { ko: '고나트륨', en: 'High sodium' },
+  'lean-protein': { ko: '저지방 단백질', en: 'Lean protein' },
+};
+
+const faqs = [
+  {
+    q: lang === 'ko' ? `${foodName} 100g의 칼로리는?` : `How many calories are in ${foodName} per 100g?`,
+    a: lang === 'ko' ? `${foodName}은(는) 100g당 ${kcal ?? '—'} kcal입니다.` : `${foodName} provides ${kcal ?? '—'} calories per 100 grams.`,
+  },
+  {
+    q: lang === 'ko' ? `${foodName}의 단백질 함량은?` : `How much protein is in ${foodName}?`,
+    a: lang === 'ko' ? `${foodName} 100g당 단백질은 ${protein ?? '—'}g입니다.` : `${foodName} contains ${protein ?? '—'}g of protein per 100g.`,
+  },
+  {
+    q: lang === 'ko' ? `${foodName}의 주요 영양소 비율은?` : `What is the macronutrient ratio of ${foodName}?`,
+    a: lang === 'ko' ? `100g 기준 에너지 기여도는 단백질 ${pPct}%, 지방 ${fPct}%, 탄수화물 ${cPct}%입니다.` : `By energy contribution per 100g: protein ${pPct}%, fat ${fPct}%, carbohydrates ${cPct}%.`,
+  },
+];
+
+const pathPrefix = lang === 'ko' ? '/food' : '/en/food';
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+};
+---
+
+<section class="food">
+  <nav class="crumbs" aria-label="breadcrumb">
+    <a href={lang === 'ko' ? '/' : '/en'}>{s.home}</a>
+    {food.category && <>› <a href={`${lang === 'ko' ? '/category' : '/en/category'}/${food.category.slug}`}>{lang === 'ko' ? (food.category.name_ko ?? food.category.name_en) : (food.category.name_en ?? food.category.name_ko)}</a></>}
+    › <span>{foodName}</span>
+  </nav>
+
+  <h1>{food.emoji ?? '🍽️'} {foodName} {lang === 'ko' ? '칼로리 · 영양성분' : 'Calories & Nutrition'}</h1>
+  {food.tags.length > 0 && (
+    <ul class="tags">
+      {food.tags.map((tg) => <li>{tagLabel[tg] ? tagLabel[tg][lang] : tg}</li>)}
+    </ul>
+  )}
+  {desc && <p class="desc">{desc}</p>}
+
+  <div class="hero">
+    <div class="donut" style={`background: conic-gradient(#4caf50 0% ${pPct}%, #f59e0b ${pPct}% ${pPct + fPct}%, #2196f3 ${pPct + fPct}% 100%)`}>
+      <div class="donut-hole">
+        <strong>{kcal ?? '—'}</strong>
+        <span>kcal / 100g</span>
+      </div>
+    </div>
+    <div class="macro-legend">
+      <div><span class="dot" style="background:#4caf50"></span>{s.protein} <b>{protein ?? '—'}g</b> · {pPct}%</div>
+      <div><span class="dot" style="background:#f59e0b"></span>{s.fat} <b>{fat ?? '—'}g</b> · {fPct}%</div>
+      <div><span class="dot" style="background:#2196f3"></span>{s.carb} <b>{carb ?? '—'}g</b> · {cPct}%</div>
+      <p class="muted">{s.macroRatio}</p>
+    </div>
+  </div>
+
+  <h2>{s.nutritionFacts} <span class="muted">({s.per100g})</span></h2>
+  <table class="nutri">
+    <thead><tr><th>{lang === 'ko' ? '영양소' : 'Nutrient'}</th><th>{lang === 'ko' ? '함량' : 'Amount'} / 100g</th></tr></thead>
+    <tbody>
+      {rows.map((r) => (
+        <tr><td>{r.label}</td><td>{r.value} {r.unit}</td></tr>
+      ))}
+    </tbody>
+  </table>
+
+  <div class="calc">
+    <h2>{s.servingCalc}</h2>
+    <label for="grams">{s.grams}: <input id="grams" type="number" min="0" step="1" value="100" data-protein={protein ?? ''} data-fat={fat ?? ''} data-carb={carb ?? ''} data-kcal={kcal ?? ''} /></label>
+    <ul class="calc-out">
+      <li>{s.kcal}: <b id="out-kcal">{kcal ?? '—'}</b></li>
+      <li>{s.protein}: <b id="out-protein">{protein ?? '—'}g</b></li>
+      <li>{s.fat}: <b id="out-fat">{fat ?? '—'}g</b></li>
+      <li>{s.carb}: <b id="out-carb">{carb ?? '—'}g</b></li>
+    </ul>
+  </div>
+
+  {food.related.length > 0 && (
+    <div class="related">
+      <h2>{s.relatedFoods}</h2>
+      <ul>
+        {food.related.map((r) => (
+          <li><a href={`${pathPrefix}/${r.slug}`}>{r.emoji ?? '🍽️'} {(lang === 'ko' ? (r.name_ko ?? r.name_en) : (r.name_en ?? r.name_ko)) ?? r.slug}</a>{r.kcal != null && <span class="muted"> · {r.kcal} kcal</span>}</li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+  <details class="faq">
+    <summary>FAQ</summary>
+    {faqs.map((f) => (<div><h3>{f.q}</h3><p>{f.a}</p></div>))}
+  </details>
+
+  <p class="source muted">{s.source}: <a href={SOURCES.usda.url} rel="nofollow">{SOURCES.usda.name}</a></p>
+  <p class="muted small">{s.disclaimer}</p>
+</section>
+
+<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
+<script>
+  const input = document.getElementById('grams') as HTMLInputElement | null;
+  if (input) {
+    const k = Number(input.dataset.kcal || 0);
+    const p = Number(input.dataset.protein || 0);
+    const f = Number(input.dataset.fat || 0);
+    const c = Number(input.dataset.carb || 0);
+    const ok = document.getElementById('out-kcal')!;
+    const op = document.getElementById('out-protein')!;
+    const of = document.getElementById('out-fat')!;
+    const oc = document.getElementById('out-carb')!;
+    const r = (n: number) => Math.round(n * 100) / 100;
+    const update = () => {
+      const g = Math.max(0, Number(input.value) || 0);
+      const m = g / 100;
+      ok.textContent = r(k * m).toString();
+      op.textContent = r(p * m) + 'g';
+      of.textContent = r(f * m) + 'g';
+      oc.textContent = r(c * m) + 'g';
+    };
+    input.addEventListener('input', update);
+  }
+</script>
+
+<style>
+  .food { max-width: 760px; margin: 0 auto; }
+  .crumbs { font-size: .85rem; color: #888; margin-bottom: .5rem; }
+  .crumbs a { color: #1677ff; text-decoration: none; }
+  h1 { font-size: 1.6rem; margin: .3rem 0; }
+  .tags { list-style: none; padding: 0; display: flex; gap: .4rem; flex-wrap: wrap; margin: .5rem 0; }
+  .tags li { background: #eef4ff; color: #1677ff; font-size: .75rem; padding: .2rem .6rem; border-radius: 999px; }
+  .desc { color: #444; margin: 1rem 0; }
+  .hero { display: flex; gap: 2rem; align-items: center; margin: 1.5rem 0; flex-wrap: wrap; }
+  .donut { width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; }
+  .donut-hole { width: 100px; height: 100px; background: #fff; border-radius: 50%; display: grid; place-items: center; text-align: center; }
+  .donut-hole strong { font-size: 1.5rem; }
+  .donut-hole span { font-size: .7rem; color: #888; }
+  .macro-legend div { margin: .25rem 0; }
+  .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: .4rem; }
+  .muted { color: #888; font-size: .85rem; }
+  table.nutri { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+  table.nutri th, table.nutri td { padding: .5rem .6rem; border-bottom: 1px solid #eee; text-align: left; }
+  table.nutri th { background: #fafafa; font-size: .85rem; }
+  .calc { background: #f7f9fc; border-radius: 12px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+  .calc input { width: 90px; padding: .4rem; border: 1px solid #ccc; border-radius: 6px; }
+  .calc-out { list-style: none; padding: 0; display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: .8rem; }
+  .related ul { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .5rem; }
+  .related li { padding: .4rem 0; }
+  .faq { margin: 1.5rem 0; }
+  .faq summary { cursor: pointer; font-weight: 600; }
+  .source { margin-top: 2rem; }
+  .small { font-size: .8rem; }
+</style>

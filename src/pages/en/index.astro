@@ -1,0 +1,9 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import HomePage from '../../components/HomePage.astro';
+const title = 'Food Calories & Nutrition Database | calorie.monster';
+const description = 'Search calories and nutrition facts (protein, carbs, fat) per 100g for thousands of foods. Free, based on USDA FoodData Central.';
+---
+<BaseLayout title={title} description={description} lang="en" canonicalPath="/en">
+  <HomePage lang="en" />
+</BaseLayout>
