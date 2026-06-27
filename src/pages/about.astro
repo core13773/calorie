@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SOURCES } from '../consts';
+---
+<BaseLayout title="소개 | calorie.monster" description="calorie.monster 소개 — USDA + 식약처 데이터 기반 식품 영양성분 검색 서비스." lang="ko" canonicalPath="/about">
+  <article class="prose">
+    <h1>calorie.monster 소개</h1>
+    <p>calorie.monster는 수천 종의 식품에 대해 칼로리·단백질·탄수화물·지방 등 영양성분을 100g 기준으로 제공하는 무료 검색 서비스입니다. 회원가입 없이 누구나 바로 이용할 수 있습니다.</p>
+
+    <h2>데이터 출처</h2>
+    <ul>
+      <li><a href={SOURCES.usda.url} rel="nofollow">{SOURCES.usda.name}</a> — 미국 정부 퍼블릭 도메인 데이터.</li>
+      <li><a href={SOURCES.mfds.url} rel="nofollow">{SOURCES.mfds.name}</a> — 공공데이터(이용허락범위 제한 없음).</li>
+    </ul>
+    <p>모든 수치는 100g당 기준이며, 각 식품 페이지에 출처를 표시합니다.</p>
+
+    <h2>제공 기능</h2>
+    <ul>
+      <li>식품별 영양성분표 (단백질·지방·탄수화물·비타민·미네랄 등)</li>
+      <li>섭취량(g) 계산기</li>
+      <li>카테고리별 탐색 · 영양성분 랭킹(고단백·저칼로리 등) · 식품 비교</li>
+    </ul>
+
+    <h2>면책</h2>
+    <p>영양 수치는 참고용이며, 실제 식품의 품종·조리법에 따라 다를 수 있습니다. 의료·영양 결정은 전문가와 상담하시기 바랍니다.</p>
+
+    <h2>문의</h2>
+    <p><a href="mailto:core13773@gmail.com">core13773@gmail.com</a> · <a href="/privacy">개인정보 처리방침</a></p>
+  </article>
+</BaseLayout>
+<style>.prose{max-width:720px;line-height:1.7}.prose h2{margin-top:1.6rem;font-size:1.1rem}.prose p,.prose li{color:#333}</style>

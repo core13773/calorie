@@ -1,0 +1,31 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { SOURCES } from '../../consts';
+---
+<BaseLayout title="About | calorie.monster" description="About calorie.monster — food nutrition search powered by USDA + 식약처 data." lang="en" canonicalPath="/en/about">
+  <article class="prose">
+    <h1>About calorie.monster</h1>
+    <p>calorie.monster provides calories, protein, carbs, fat and more — per 100g — for thousands of foods. It's free and requires no sign-up.</p>
+
+    <h2>Data sources</h2>
+    <ul>
+      <li><a href={SOURCES.usda.url} rel="nofollow">{SOURCES.usda.name}</a> — U.S. public-domain data.</li>
+      <li><a href={SOURCES.mfds.url} rel="nofollow">{SOURCES.mfds.name}</a> — Korean public data (no use restrictions).</li>
+    </ul>
+    <p>All values are per 100g; each food page credits its source.</p>
+
+    <h2>Features</h2>
+    <ul>
+      <li>Per-food nutrition tables (macros, vitamins, minerals)</li>
+      <li>Serving-size (grams) calculator</li>
+      <li>Browse by category · rankings (high-protein, low-calorie, …) · food comparisons</li>
+    </ul>
+
+    <h2>Disclaimer</h2>
+    <p>Values are for reference and vary by variety and preparation. Consult a professional for medical or dietary decisions.</p>
+
+    <h2>Contact</h2>
+    <p><a href="mailto:core13773@gmail.com">core13773@gmail.com</a> · <a href="/en/privacy">Privacy Policy</a></p>
+  </article>
+</BaseLayout>
+<style>.prose{max-width:720px;line-height:1.7}.prose h2{margin-top:1.6rem;font-size:1.1rem}.prose p,.prose li{color:#333}</style>

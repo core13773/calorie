@@ -36,6 +36,9 @@ const enUrl = new URL(enPath, SITE_URL).href;
     <meta property="og:locale" content={lang === 'ko' ? 'ko_KR' : 'en_US'} />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {import.meta.env.PUBLIC_ADSENSE_CLIENT && (
+      <script is:inline async src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${import.meta.env.PUBLIC_ADSENSE_CLIENT}`} crossorigin="anonymous"></script>
+    )}
   </head>
   <body>
     <header>
@@ -52,7 +55,12 @@ const enUrl = new URL(enPath, SITE_URL).href;
       <slot />
     </main>
     <footer>
-      <p>© {new Date().getFullYear()} {SITE_NAME} · <a href={lang === 'ko' ? '/' : '/en'}>{lang === 'ko' ? '출처: USDA FoodData Central (미국 공공데이터)' : 'Data: USDA FoodData Central (U.S. public domain)'}</a></p>
+      <p>© {new Date().getFullYear()} {SITE_NAME} · {lang === 'ko' ? '데이터: USDA FoodData Central + 식약처 식품영양성분DB' : 'Data: USDA FoodData Central + 식약처 nutrition DB'}</p>
+      <p class="footlinks">
+        <a href={lang === 'ko' ? '/about' : '/en/about'}>{lang === 'ko' ? '소개' : 'About'}</a> ·
+        <a href={lang === 'ko' ? '/privacy' : '/en/privacy'}>{lang === 'ko' ? '개인정보처리방침' : 'Privacy'}</a> ·
+        <a href={lang === 'ko' ? '/contact' : '/en/contact'}>{lang === 'ko' ? '문의' : 'Contact'}</a>
+      </p>
     </footer>
   </body>
 </html>
@@ -65,4 +73,6 @@ const enUrl = new URL(enPath, SITE_URL).href;
   header nav a { margin-left: 1rem; text-decoration: none; }
   main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
   footer { max-width: 1100px; margin: 0 auto; padding: 1.5rem; border-top: 1px solid #eee; color: #888; font-size: .85rem; }
+  .footlinks { margin-top: .3rem; }
+  .footlinks a { color: #888; text-decoration: none; }
 </style>
