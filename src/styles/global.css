@@ -1,0 +1,91 @@
+/* Design tokens */
+:root {
+  --primary: #16a34a;
+  --primary-dark: #15803d;
+  --primary-soft: #ecfbf2;
+  --accent: #1677ff;
+  --bg: #f7f9f8;
+  --card: #ffffff;
+  --border: #e7ebe8;
+  --text: #15201c;
+  --muted: #6b7670;
+  --radius: 14px;
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, .05);
+  --shadow: 0 1px 3px rgba(16, 24, 40, .08), 0 1px 2px rgba(16, 24, 40, .04);
+  --maxw: 1080px;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: system-ui, -apple-system, 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  margin: 0;
+  color: var(--text);
+  line-height: 1.6;
+  background: var(--bg);
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+h1, h2, h3 { line-height: 1.25; color: var(--text); }
+h1 { font-size: 1.7rem; margin: .4rem 0; }
+h2 { font-size: 1.2rem; margin: 1.6rem 0 .6rem; }
+img { max-width: 100%; }
+
+.container { max-width: var(--maxw); margin: 0 auto; padding: 0 1rem; }
+.muted { color: var(--muted); font-size: .9rem; }
+.small { font-size: .8rem; }
+
+/* Buttons — touch-friendly (≥44px) */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .15s, border-color .15s, transform .05s;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:hover { text-decoration: none; border-color: var(--primary); color: var(--primary-dark); }
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; box-shadow: var(--shadow-sm); }
+.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); color: #fff; }
+
+/* Cards */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: .9rem 1rem;
+  box-shadow: var(--shadow-sm);
+  transition: border-color .15s, box-shadow .15s, transform .1s;
+}
+.card-hover:hover { border-color: var(--primary); box-shadow: var(--shadow); transform: translateY(-1px); text-decoration: none; }
+
+/* Pills / tags */
+.pill {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: var(--primary-soft); color: var(--primary-dark);
+  font-size: .8rem; font-weight: 600; padding: .3rem .7rem; border-radius: 999px;
+}
+
+/* Responsive grids */
+.grid-foods {
+  list-style: none; padding: 0; margin: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .6rem;
+}
+@media (max-width: 600px) {
+  .grid-foods { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .5rem; }
+  h1 { font-size: 1.4rem; }
+  h2 { font-size: 1.05rem; }
+}

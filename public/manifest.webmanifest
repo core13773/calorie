@@ -1,0 +1,12 @@
+{
+  "name": "calorie.monster — Food Nutrition & Calorie Database",
+  "short_name": "calorie",
+  "description": "식품 영양성분 · 칼로리 검색 (USDA + 식약처)",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f9f8",
+  "theme_color": "#16a34a",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

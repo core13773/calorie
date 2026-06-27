@@ -113,13 +113,22 @@ const jsonLd = {
   <AdSlot slot="food-mid" />
 
   <div class="calc">
-    <h2>{s.servingCalc}</h2>
-    <label for="grams">{s.grams}: <input id="grams" type="number" min="0" step="1" value="100" data-protein={protein ?? ''} data-fat={fat ?? ''} data-carb={carb ?? ''} data-kcal={kcal ?? ''} /></label>
+    <h2>🔢 {s.servingCalc}</h2>
+    <div class="calc-controls">
+      <button type="button" class="btn step-btn" data-step="-25">−25</button>
+      <button type="button" class="btn step-btn" data-step="-5" aria-label="-5g">−</button>
+      <div class="calc-input">
+        <input id="grams" type="number" min="0" step="1" value="100" inputmode="numeric" data-protein={protein ?? ''} data-fat={fat ?? ''} data-carb={carb ?? ''} data-kcal={kcal ?? ''} aria-label={s.grams} />
+        <span>{s.grams}</span>
+      </div>
+      <button type="button" class="btn step-btn" data-step="5" aria-label="+5g">+</button>
+      <button type="button" class="btn step-btn" data-step="25">+25</button>
+    </div>
     <ul class="calc-out">
-      <li>{s.kcal}: <b id="out-kcal">{kcal ?? '—'}</b></li>
-      <li>{s.protein}: <b id="out-protein">{protein ?? '—'}g</b></li>
-      <li>{s.fat}: <b id="out-fat">{fat ?? '—'}g</b></li>
-      <li>{s.carb}: <b id="out-carb">{carb ?? '—'}g</b></li>
+      <li class="calc-stat"><span class="cs-label">{s.kcal}</span><b id="out-kcal">{kcal ?? '—'}</b></li>
+      <li class="calc-stat"><span class="cs-label">{s.protein}</span><b id="out-protein">{protein ?? '—'}g</b></li>
+      <li class="calc-stat"><span class="cs-label">{s.fat}</span><b id="out-fat">{fat ?? '—'}g</b></li>
+      <li class="calc-stat"><span class="cs-label">{s.carb}</span><b id="out-carb">{carb ?? '—'}g</b></li>
     </ul>
   </div>
 
@@ -166,6 +175,12 @@ const jsonLd = {
       oc.textContent = r(c * m) + 'g';
     };
     input.addEventListener('input', update);
+    document.querySelectorAll<HTMLButtonElement>('.step-btn').forEach((b) => {
+      b.addEventListener('click', () => {
+        input.value = String(Math.max(0, (Number(input.value) || 0) + Number(b.dataset.step)));
+        update();
+      });
+    });
   }
 </script>
 
@@ -188,13 +203,30 @@ const jsonLd = {
   table.nutri { width: 100%; border-collapse: collapse; margin: 1rem 0; }
   table.nutri th, table.nutri td { padding: .5rem .6rem; border-bottom: 1px solid #eee; text-align: left; }
   table.nutri th { background: #fafafa; font-size: .85rem; }
-  .calc { background: #f7f9fc; border-radius: 12px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
-  .calc input { width: 90px; padding: .4rem; border: 1px solid #ccc; border-radius: 6px; }
-  .calc-out { list-style: none; padding: 0; display: flex; gap: 1.5rem; flex-wrap: wrap; margin-top: .8rem; }
+  .calc { background: #f7f9fc; border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+  .calc-controls { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+  .calc-input { display: inline-flex; align-items: center; gap: .4rem; }
+  .calc-input input { width: 84px; min-height: 44px; padding: .4rem .5rem; text-align: center; border: 1px solid var(--border); border-radius: 10px; font-size: 1.15rem; font-weight: 700; background: #fff; }
+  .calc-input span { color: var(--muted); font-size: .9rem; }
+  .step-btn { min-width: 44px; padding: 0 .55rem; font-weight: 700; }
+  .calc-out { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .6rem; margin-top: 1rem; }
+  .calc-stat { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: .55rem .8rem; display: flex; flex-direction: column; }
+  .cs-label { color: var(--muted); font-size: .76rem; }
+  .calc-stat b { font-size: 1.15rem; color: var(--primary-dark); }
   .related ul { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .5rem; }
   .related li { padding: .4rem 0; }
   .faq { margin: 1.5rem 0; }
   .faq summary { cursor: pointer; font-weight: 600; }
   .source { margin-top: 2rem; }
   .small { font-size: .8rem; }
+  @media (max-width: 600px) {
+    .hero { flex-direction: column; text-align: center; gap: 1rem; }
+    .donut { width: 128px; height: 128px; }
+    .donut-hole { width: 86px; height: 86px; }
+    .donut-hole strong { font-size: 1.3rem; }
+    .macro-legend div { font-size: .95rem; }
+    table.nutri th, table.nutri td { padding: .45rem .35rem; font-size: .92rem; }
+    .related ul { grid-template-columns: 1fr; }
+    .calc { padding: .9rem; }
+  }
 </style>
