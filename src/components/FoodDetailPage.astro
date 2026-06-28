@@ -2,12 +2,16 @@
 import type { Lang } from '../i18n/ui';
 import { t } from '../i18n/ui';
 import { getNutrientMeta, type FoodDetail } from '../lib/db';
-import { SOURCES } from '../consts';
+import { SOURCES, SITE_URL } from '../consts';
 import AdSlot from './AdSlot.astro';
 
 interface Props { food: FoodDetail; lang: Lang }
 const { food, lang } = Astro.props;
 const s = t(lang);
+
+// Source attribution per-food (license requirement): USDA for English foods,
+// 식약처 for Korean foods. Falls back to USDA if the source column is unset.
+const src = food.source === 'mfds' ? SOURCES.mfds : SOURCES.usda;
 
 const meta = await getNutrientMeta();
 
@@ -63,14 +67,44 @@ const faqs = [
 ];
 
 const pathPrefix = lang === 'ko' ? '/food' : '/en/food';
-const jsonLd = {
+const pageUrl = `${SITE_URL}${lang === 'ko' ? '' : '/en'}/food/${food.slug}`;
+
+const faqLd = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
   mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
 };
+
+// BreadcrumbList + NutritionInformation structured data (rich results).
+const crumb = [
+  { name: lang === 'ko' ? '홈' : 'Home', url: `${SITE_URL}${lang === 'ko' ? '' : '/en'}` },
+  ...(food.category ? [{ name: (lang === 'ko' ? (food.category.name_ko ?? food.category.name_en) : (food.category.name_en ?? food.category.name_ko)) ?? food.category.slug, url: `${SITE_URL}${lang === 'ko' ? '' : '/en'}/category/${food.category.slug}` }] : []),
+  { name: foodName, url: pageUrl },
+];
+const breadcrumbLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: crumb.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: c.url })),
+};
+const ni = (amount: number | null, unit: string, key: string) =>
+  amount == null ? {} : { [key]: `${amount} ${unit}` };
+const nutritionLd = {
+  '@context': 'https://schema.org',
+  '@type': 'NutritionInformation',
+  servingSize: '100 g',
+  calories: ni(kcal, 'kcal', 'value'),
+  proteinContent: ni(protein, 'g', 'value'),
+  fatContent: ni(fat, 'g', 'value'),
+  carbohydrateContent: ni(carb, 'g', 'value'),
+  fiberContent: ni(val('fiber'), 'g', 'value'),
+  sugarContent: ni(val('sugars'), 'g', 'value'),
+  sodiumContent: ni(val('sodium'), 'mg', 'value'),
+};
+
+const favName = encodeURIComponent(foodName);
 ---
 
-<section class="food">
+<section class="food" data-slug={food.slug}>
   <nav class="crumbs" aria-label="breadcrumb">
     <a href={lang === 'ko' ? '/' : '/en'}>{s.home}</a>
     {food.category && <>› <a href={`${lang === 'ko' ? '/category' : '/en/category'}/${food.category.slug}`}>{lang === 'ko' ? (food.category.name_ko ?? food.category.name_en) : (food.category.name_en ?? food.category.name_ko)}</a></>}
@@ -78,6 +112,23 @@ const jsonLd = {
   </nav>
 
   <h1>{food.emoji ?? '🍽️'} {foodName} {lang === 'ko' ? '칼로리 · 영양성분' : 'Calories & Nutrition'}</h1>
+
+  <div class="food-actions">
+    <button type="button" class="btn act-btn" id="fav-btn"
+      data-slug={food.slug} data-name={foodName} data-emoji={food.emoji ?? '🍽️'} data-kcal={kcal ?? ''} data-ko={lang === 'ko' ? '1' : '0'}>
+      <span class="fav-star">☆</span> <span class="fav-label">{lang === 'ko' ? '즐겨찾기' : 'Favorite'}</span>
+    </button>
+    <button type="button" class="btn act-btn" id="share-btn">
+      <span aria-hidden="true">↗</span> {lang === 'ko' ? '공유' : 'Share'}
+    </button>
+    <div id="share-links" class="share-links" hidden>
+      <a target="_blank" rel="noopener" data-share="x">𝕏</a>
+      <a target="_blank" rel="noopener" data-share="fb">f</a>
+      <a target="_blank" rel="noopener" data-share="naver">N</a>
+      <button type="button" data-share="copy">{lang === 'ko' ? '링크 복사' : 'Copy link'}</button>
+    </div>
+  </div>
+
   {food.tags.length > 0 && (
     <ul class="tags">
       {food.tags.map((tg) => <li>{tagLabel[tg] ? tagLabel[tg][lang] : tg}</li>)}
@@ -86,16 +137,16 @@ const jsonLd = {
   {desc && <p class="desc">{desc}</p>}
 
   <div class="hero">
-    <div class="donut" style={`background: conic-gradient(#4caf50 0% ${pPct}%, #f59e0b ${pPct}% ${pPct + fPct}%, #2196f3 ${pPct + fPct}% 100%)`}>
+    <div class="donut" style={`background: conic-gradient(var(--c-protein) 0% ${pPct}%, var(--c-fat) ${pPct}% ${pPct + fPct}%, var(--c-carb) ${pPct + fPct}% 100%)`}>
       <div class="donut-hole">
         <strong>{kcal ?? '—'}</strong>
         <span>kcal / 100g</span>
       </div>
     </div>
     <div class="macro-legend">
-      <div><span class="dot" style="background:#4caf50"></span>{s.protein} <b>{protein ?? '—'}g</b> · {pPct}%</div>
-      <div><span class="dot" style="background:#f59e0b"></span>{s.fat} <b>{fat ?? '—'}g</b> · {fPct}%</div>
-      <div><span class="dot" style="background:#2196f3"></span>{s.carb} <b>{carb ?? '—'}g</b> · {cPct}%</div>
+      <div><span class="dot" style={`background:var(--c-protein)`}></span>{s.protein} <b>{protein ?? '—'}g</b> · {pPct}%</div>
+      <div><span class="dot" style={`background:var(--c-fat)`}></span>{s.fat} <b>{fat ?? '—'}g</b> · {fPct}%</div>
+      <div><span class="dot" style={`background:var(--c-carb)`}></span>{s.carb} <b>{carb ?? '—'}g</b> · {cPct}%</div>
       <p class="muted">{s.macroRatio}</p>
     </div>
   </div>
@@ -114,6 +165,13 @@ const jsonLd = {
 
   <div class="calc">
     <h2>🔢 {s.servingCalc}</h2>
+    <div class="calc-presets" role="group" aria-label="presets">
+      <button type="button" class="preset-btn" data-set="50">50g</button>
+      <button type="button" class="preset-btn" data-set="100">100g</button>
+      <button type="button" class="preset-btn" data-set="150">150g</button>
+      <button type="button" class="preset-btn" data-set="200">200g</button>
+      <button type="button" class="preset-btn" data-set="300">300g</button>
+    </div>
     <div class="calc-controls">
       <button type="button" class="btn step-btn" data-step="-25">−25</button>
       <button type="button" class="btn step-btn" data-step="-5" aria-label="-5g">−</button>
@@ -148,11 +206,13 @@ const jsonLd = {
     {faqs.map((f) => (<div><h3>{f.q}</h3><p>{f.a}</p></div>))}
   </details>
 
-  <p class="source muted">{s.source}: <a href={SOURCES.usda.url} rel="nofollow">{SOURCES.usda.name}</a></p>
+  <p class="source muted">{s.source}: <a href={src.url} rel="nofollow">{src.name}</a></p>
   <p class="muted small">{s.disclaimer}</p>
 </section>
 
-<script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+<script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
+<script type="application/ld+json" set:html={JSON.stringify(breadcrumbLd)} />
+<script type="application/ld+json" set:html={JSON.stringify(nutritionLd)} />
 
 <script>
   const input = document.getElementById('grams') as HTMLInputElement | null;
@@ -181,36 +241,115 @@ const jsonLd = {
         update();
       });
     });
+    document.querySelectorAll<HTMLButtonElement>('.preset-btn').forEach((b) => {
+      b.addEventListener('click', () => { input.value = String(Number(b.dataset.set) || 0); update(); });
+    });
+  }
+
+  // ---- Favorites (localStorage) ----
+  const section = document.querySelector<HTMLElement>('.food');
+  const favBtn = document.getElementById('fav-btn') as HTMLButtonElement | null;
+  const readFavs = (): any[] => { try { return JSON.parse(localStorage.getItem('calorie-favs') || '[]'); } catch { return []; } };
+  const writeFavs = (a: any[]) => { try { localStorage.setItem('calorie-favs', JSON.stringify(a.slice(0, 100))); } catch {} };
+  const renderFav = () => {
+    if (!favBtn || !section) return;
+    const favs = readFavs();
+    const on = favs.some((x) => x.slug === section.dataset.slug);
+    favBtn.classList.toggle('on', on);
+    const star = favBtn.querySelector('.fav-star');
+    const label = favBtn.querySelector('.fav-label');
+    const ko = favBtn.dataset.ko === '1';
+    if (star) star.textContent = on ? '★' : '☆';
+    if (label) label.textContent = on ? (ko ? '즐겨찾기됨' : 'Favorited') : (ko ? '즐겨찾기' : 'Favorite');
+  };
+  if (favBtn) {
+    favBtn.addEventListener('click', () => {
+      const favs = readFavs();
+      const slug = favBtn.dataset.slug!;
+      const idx = favs.findIndex((x) => x.slug === slug);
+      if (idx >= 0) favs.splice(idx, 1);
+      else favs.unshift({ slug, name: favBtn.dataset.name, emoji: favBtn.dataset.emoji, kcal: favBtn.dataset.kcal ? Number(favBtn.dataset.kcal) : null });
+      writeFavs(favs);
+      renderFav();
+    });
+    renderFav();
+  }
+
+  // ---- Recently viewed (localStorage, newest first, deduped, capped) ----
+  if (section) {
+    try {
+      const slug = section.dataset.slug!;
+      const rec: any[] = JSON.parse(localStorage.getItem('calorie-recent') || '[]');
+      const filtered = rec.filter((x) => x.slug !== slug);
+      filtered.unshift({ slug, name: favBtn?.dataset.name ?? slug, emoji: favBtn?.dataset.emoji ?? '🍽️', kcal: favBtn?.dataset.kcal ? Number(favBtn.dataset.kcal) : null });
+      localStorage.setItem('calorie-recent', JSON.stringify(filtered.slice(0, 12)));
+    } catch {}
+  }
+
+  // ---- Share ----
+  const shareBtn = document.getElementById('share-btn');
+  const shareLinks = document.getElementById('share-links');
+  if (shareBtn && shareLinks) {
+    const u = location.href;
+    const ko = (document.documentElement.lang || 'ko').indexOf('ko') === 0;
+    const shareUrl = (base: string) => base + encodeURIComponent(u);
+    const setLink = (sel: string, base: string) => {
+      const a = shareLinks.querySelector<HTMLAnchorElement>(`[data-share="${sel}"]`);
+      if (a) a.href = shareUrl(base);
+    };
+    setLink('x', 'https://twitter.com/intent/tweet?url=');
+    setLink('fb', 'https://www.facebook.com/sharer/sharer.php?u=');
+    setLink('naver', 'https://share.naver.com/web/shareView?url=');
+    shareBtn.addEventListener('click', async () => {
+      const title = document.title;
+      if (navigator.share) {
+        try { await navigator.share({ title, url: u }); return; } catch {}
+      }
+      shareLinks.hidden = !shareLinks.hidden;
+    });
+    const copyBtn = shareLinks.querySelector<HTMLButtonElement>('[data-share="copy"]');
+    if (copyBtn) copyBtn.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(u); copyBtn.textContent = ko ? '복사됨 ✓' : 'Copied ✓'; } catch {}
+    });
   }
 </script>
 
 <style>
   .food { max-width: 760px; margin: 0 auto; }
-  .crumbs { font-size: .85rem; color: #888; margin-bottom: .5rem; }
-  .crumbs a { color: #1677ff; text-decoration: none; }
+  .crumbs { font-size: .85rem; color: var(--muted); margin-bottom: .5rem; }
+  .crumbs a { color: var(--link); text-decoration: none; }
   h1 { font-size: 1.6rem; margin: .3rem 0; }
+  .food-actions { display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; margin: .4rem 0 .2rem; position: relative; }
+  .act-btn { min-height: 40px; }
+  .fav-star { color: var(--star); }
+  .act-btn.on { border-color: var(--star); color: var(--star); }
+  .share-links { display: inline-flex; align-items: center; gap: .35rem; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: .25rem .35rem; box-shadow: var(--shadow); }
+  .share-links a, .share-links button { display: inline-flex; align-items: center; justify-content: center; min-width: 34px; min-height: 34px; padding: 0 .5rem; border-radius: 8px; font-weight: 700; border: 1px solid var(--border); background: var(--card); color: var(--text); font-family: inherit; font-size: .9rem; cursor: pointer; text-decoration: none; }
   .tags { list-style: none; padding: 0; display: flex; gap: .4rem; flex-wrap: wrap; margin: .5rem 0; }
-  .tags li { background: #eef4ff; color: #1677ff; font-size: .75rem; padding: .2rem .6rem; border-radius: 999px; }
-  .desc { color: #444; margin: 1rem 0; }
+  .tags li { background: var(--tag-bg); color: var(--tag-text); font-size: .75rem; padding: .2rem .6rem; border-radius: 999px; }
+  .desc { color: var(--prose); margin: 1rem 0; }
   .hero { display: flex; gap: 2rem; align-items: center; margin: 1.5rem 0; flex-wrap: wrap; }
   .donut { width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; }
-  .donut-hole { width: 100px; height: 100px; background: #fff; border-radius: 50%; display: grid; place-items: center; text-align: center; }
+  .donut-hole { width: 100px; height: 100px; background: var(--card); border-radius: 50%; display: grid; place-items: center; text-align: center; }
   .donut-hole strong { font-size: 1.5rem; }
-  .donut-hole span { font-size: .7rem; color: #888; }
+  .donut-hole span { font-size: .7rem; color: var(--muted); }
   .macro-legend div { margin: .25rem 0; }
   .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: .4rem; }
-  .muted { color: #888; font-size: .85rem; }
+  .muted { color: var(--muted); font-size: .85rem; }
   table.nutri { width: 100%; border-collapse: collapse; margin: 1rem 0; }
-  table.nutri th, table.nutri td { padding: .5rem .6rem; border-bottom: 1px solid #eee; text-align: left; }
-  table.nutri th { background: #fafafa; font-size: .85rem; }
-  .calc { background: #f7f9fc; border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+  table.nutri th, table.nutri td { padding: .5rem .6rem; border-bottom: 1px solid var(--row-border); text-align: left; }
+  table.nutri th { background: var(--th-bg); font-size: .85rem; }
+  .calc { background: var(--calc-bg); border: 1px solid var(--border); border-radius: 14px; padding: 1rem 1.2rem; margin: 1.5rem 0; }
+  .calc-presets { display: flex; gap: .35rem; flex-wrap: wrap; margin-bottom: .75rem; }
+  .preset-btn { min-height: 36px; padding: 0 .7rem; border: 1px solid var(--border); border-radius: 9px; background: var(--card); color: var(--text); font-weight: 600; font-size: .88rem; cursor: pointer; -webkit-tap-highlight-color: transparent; font-family: inherit; }
+  .preset-btn:hover { border-color: var(--primary); color: var(--primary-dark); }
   .calc-controls { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
   .calc-input { display: inline-flex; align-items: center; gap: .4rem; }
-  .calc-input input { width: 84px; min-height: 44px; padding: .4rem .5rem; text-align: center; border: 1px solid var(--border); border-radius: 10px; font-size: 1.15rem; font-weight: 700; background: #fff; }
+  .calc-input input { width: 84px; min-height: 44px; padding: .4rem .5rem; text-align: center; border: 1px solid var(--border); border-radius: 10px; font-size: 1.15rem; font-weight: 700; background: var(--input-bg); color: var(--text); }
   .calc-input span { color: var(--muted); font-size: .9rem; }
   .step-btn { min-width: 44px; padding: 0 .55rem; font-weight: 700; }
   .calc-out { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: .6rem; margin-top: 1rem; }
-  .calc-stat { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: .55rem .8rem; display: flex; flex-direction: column; }
+  .calc-stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: .55rem .8rem; display: flex; flex-direction: column; }
   .cs-label { color: var(--muted); font-size: .76rem; }
   .calc-stat b { font-size: 1.15rem; color: var(--primary-dark); }
   .related ul { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .5rem; }

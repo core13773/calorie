@@ -9,3 +9,8 @@ export const SOURCES = {
   usda: { name: 'USDA FoodData Central (U.S. public domain)', url: 'https://fdc.nal.usda.gov/' },
   mfds: { name: '식약처 식품영양성분DB (공공데이터, 제한 없음)', url: 'https://www.data.go.kr/data/15127578/openapi.do' },
 } as const;
+
+// Google Analytics 4 measurement ID. The ID itself is not a secret (it is
+// visible in every page's source by design), so a hardcoded default guarantees
+// it ships on every build/deploy. Set PUBLIC_GA4_ID in the build env to override.
+export const GA4_ID = (import.meta.env.PUBLIC_GA4_ID as string) || 'G-M376DYGS5Q';

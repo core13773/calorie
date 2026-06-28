@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { getPopularFoods } from '../../../lib/db';
+
+// Same source/order the static /en/compare/[pair] pages are generated from, so
+// any pairing the user builds resolves to an existing page (no 404).
+const pop = (await getPopularFoods('en')).map((f) => ({
+  slug: f.slug,
+  name: f.name_en ?? f.name_ko ?? f.slug,
+  kcal: f.nutrients.find((n) => n.nutrient_id === 'energy')?.amount ?? null,
+}));
+const popular = pop.map((p, i) => ({ ...p, i }));
+---
+<BaseLayout title="Compare Food Nutrition | calorie.monster" description="Compare calories, protein, fat, carbs and more between two foods per 100g." lang="en" canonicalPath="/en/compare">
+  <h1>Compare Foods</h1>
+  <p class="muted">Pick two foods to compare their nutrition per 100g.</p>
+
+  <form id="cmp-form" class="cmp-tool">
+    <label class="cmp-field">
+      <span>Food A</span>
+      <select id="food-a">
+        {popular.map((p) => <option value={p.i}>{p.name}{p.kcal != null ? ` (${p.kcal} kcal)` : ''}</option>)}
+      </select>
+    </label>
+    <span class="cmp-vs">VS</span>
+    <label class="cmp-field">
+      <span>Food B</span>
+      <select id="food-b">
+        {popular.map((p, idx) => <option value={p.i} selected={idx === 1}>{p.name}{p.kcal != null ? ` (${p.kcal} kcal)` : ''}</option>)}
+      </select>
+    </label>
+    <button type="submit" class="btn btn-primary">⚖️ Compare</button>
+  </form>
+
+  <p class="cmp-hint muted">Compare popular foods. For others, use the compare links on each food page.</p>
+</BaseLayout>
+
+<script type="application/json" id="pop-data" set:html={JSON.stringify(popular.map((p) => ({ i: p.i, slug: p.slug, name: p.name })))} />
+<script>
+  (function () {
+    var form = document.getElementById('cmp-form');
+    var data = JSON.parse(document.getElementById('pop-data').textContent || '[]');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var ia = Number(document.getElementById('food-a').value);
+      var ib = Number(document.getElementById('food-b').value);
+      if (ia === ib) { alert('Pick two different foods.'); return; }
+      var lo = Math.min(ia, ib), hi = Math.max(ia, ib);
+      var sa = data.find(function (d) { return d.i === lo; }).slug;
+      var sb = data.find(function (d) { return d.i === hi; }).slug;
+      location.href = '/en/compare/' + sa + '__' + sb;
+    });
+  })();
+</script>
+
+<style>
+  .cmp-tool { display: flex; align-items: flex-end; gap: .7rem; flex-wrap: wrap; margin: 1.2rem 0 .5rem; }
+  .cmp-field { display: flex; flex-direction: column; gap: .25rem; flex: 1; min-width: 180px; font-weight: 600; font-size: .9rem; color: var(--muted); }
+  .cmp-field select { min-height: 48px; padding: .6rem .7rem; border: 1px solid var(--border); border-radius: 11px; background: var(--input-bg); color: var(--text); font-size: 1rem; font-family: inherit; }
+  .cmp-vs { font-weight: 800; color: var(--muted); padding-bottom: .7rem; }
+  .cmp-hint { font-size: .85rem; }
+</style>

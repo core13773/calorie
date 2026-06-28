@@ -36,6 +36,7 @@ export interface FoodSummary {
 export interface FoodDetail {
   id: string;
   slug: string;
+  source: string | null;
   name_ko: string | null;
   name_en: string | null;
   desc_ko: string | null;
@@ -88,7 +89,7 @@ async function loadData(): Promise<DataIndex> {
   while (true) {
     const { data, error } = await supabase
       .from('foods')
-      .select('id, slug, name_ko, name_en, desc_ko, desc_en, emoji, tags, serving_g, category_id, food_nutrients(nutrient_id, amount, unit)')
+      .select('id, slug, source, name_ko, name_en, desc_ko, desc_en, emoji, tags, serving_g, category_id, food_nutrients(nutrient_id, amount, unit)')
       .order('slug')
       .range(from, from + PAGE - 1);
     if (error) throw error;
@@ -97,6 +98,7 @@ async function loadData(): Promise<DataIndex> {
       foods.push({
         id: f.id,
         slug: f.slug,
+        source: f.source ?? null,
         name_ko: f.name_ko,
         name_en: f.name_en,
         desc_ko: f.desc_ko,

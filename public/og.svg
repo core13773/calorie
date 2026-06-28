@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="system-ui, -apple-system, 'Segoe UI', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#16a34a"/>
+      <stop offset="1" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="980" cy="120" r="220" fill="#ffffff" opacity="0.08"/>
+  <circle cx="1080" cy="520" r="150" fill="#ffffff" opacity="0.06"/>
+  <text x="90" y="240" font-size="120">🥗</text>
+  <text x="90" y="360" fill="#ffffff" font-size="74" font-weight="800">calorie.monster</text>
+  <text x="92" y="430" fill="#d1fae5" font-size="40" font-weight="600">식품 영양성분 · 칼로리 검색</text>
+  <text x="92" y="478" fill="#bbf7d0" font-size="28" font-weight="500">Food Nutrition &amp; Calorie Database — per 100g</text>
+  <text x="90" y="560" fill="#ffffff" font-size="26" font-weight="600" opacity="0.85">USDA FoodData Central · 식약처 식품영양성분DB</text>
+</svg>

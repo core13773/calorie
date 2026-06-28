@@ -14,7 +14,7 @@ All pages attribute the source (license requirement).
 
 ## Stack
 
-Astro 5 (SSG) + Supabase (Postgres) + Cloudflare Pages. DB is read at **build time** only → static output, zero runtime cost. ETL is Node/TypeScript (shares the Supabase client & types with the site).
+Astro 5 (SSG) + Supabase (Postgres) + GitHub Pages. DB is read at **build time** only → static output, zero runtime cost. ETL is Node/TypeScript + Python (shares the Supabase client & types with the site).
 
 ## Commands
 
@@ -33,8 +33,8 @@ calorie/
 ├── astro.config.mjs        # SITE_URL, static, sitemap+i18n (mirrors fincalc)
 ├── etl/                    # data pipelines (Node/TS)
 │   ├── lib/                # normalize, slug, descriptions, tags
-│   ├── usda.ts             # USDA CSV → Supabase
-│   └── mfds.ts             # 식약처 API → Supabase
+│   ├── usda.ts             # USDA CSV → Supabase (Node/TS)
+│   └── mfds.py             # 식약처 XLSX → Supabase (Python)
 ├── src/
 │   ├── lib/{supabase,db}.ts
 │   ├── i18n/ui.ts          # KO/EN strings
