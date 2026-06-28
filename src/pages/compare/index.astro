@@ -1,0 +1,62 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPopularFoods } from '../../lib/db';
+
+// Same source/order the static /compare/[pair] pages are generated from, so any
+// pairing the user builds resolves to an existing page (no 404).
+const pop = (await getPopularFoods('ko')).map((f) => ({
+  slug: f.slug,
+  name: f.name_ko ?? f.name_en ?? f.slug,
+  kcal: f.nutrients.find((n) => n.nutrient_id === 'energy')?.amount ?? null,
+}));
+const popular = pop.map((p, i) => ({ ...p, i }));
+---
+<BaseLayout title="식품 영양성분 비교 | calorie.monster" description="두 식품의 칼로리·단백질·지방·탄수화물 등 영양성분을 100g 기준으로 비교하세요." lang="ko" canonicalPath="/compare">
+  <h1>식품 영양성분 비교</h1>
+  <p class="muted">두 식품을 선택해 100g 기준 영양성분을 비교하세요.</p>
+
+  <form id="cmp-form" class="cmp-tool">
+    <label class="cmp-field">
+      <span>식품 A</span>
+      <select id="food-a">
+        {popular.map((p) => <option value={p.i}>{p.name}{p.kcal != null ? ` (${p.kcal} kcal)` : ''}</option>)}
+      </select>
+    </label>
+    <span class="cmp-vs">VS</span>
+    <label class="cmp-field">
+      <span>식품 B</span>
+      <select id="food-b">
+        {popular.map((p, idx) => <option value={p.i} selected={idx === 1}>{p.name}{p.kcal != null ? ` (${p.kcal} kcal)` : ''}</option>)}
+      </select>
+    </label>
+    <button type="submit" class="btn btn-primary">⚖️ 비교하기</button>
+  </form>
+
+  <p class="cmp-hint muted">인기 식품끼리 비교할 수 있어요. 전체 목록은 각 식품 페이지의 비교 링크를 이용하세요.</p>
+</BaseLayout>
+
+<script type="application/json" id="pop-data" set:html={JSON.stringify(popular.map((p) => ({ i: p.i, slug: p.slug, name: p.name })))} />
+<script>
+  (function () {
+    var form = document.getElementById('cmp-form');
+    var data = JSON.parse(document.getElementById('pop-data').textContent || '[]');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var ia = Number(document.getElementById('food-a').value);
+      var ib = Number(document.getElementById('food-b').value);
+      if (ia === ib) { alert('서로 다른 두 식품을 선택하세요.'); return; }
+      var lo = Math.min(ia, ib), hi = Math.max(ia, ib);
+      var sa = data.find(function (d) { return d.i === lo; }).slug;
+      var sb = data.find(function (d) { return d.i === hi; }).slug;
+      location.href = '/compare/' + sa + '__' + sb;
+    });
+  })();
+</script>
+
+<style>
+  .cmp-tool { display: flex; align-items: flex-end; gap: .7rem; flex-wrap: wrap; margin: 1.2rem 0 .5rem; }
+  .cmp-field { display: flex; flex-direction: column; gap: .25rem; flex: 1; min-width: 180px; font-weight: 600; font-size: .9rem; color: var(--muted); }
+  .cmp-field select { min-height: 48px; padding: .6rem .7rem; border: 1px solid var(--border); border-radius: 11px; background: var(--input-bg); color: var(--text); font-size: 1rem; font-family: inherit; }
+  .cmp-vs { font-weight: 800; color: var(--muted); padding-bottom: .7rem; }
+  .cmp-hint { font-size: .85rem; }
+</style>

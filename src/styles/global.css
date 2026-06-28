@@ -1,4 +1,4 @@
-/* Design tokens */
+/* Design tokens — light (default) */
 :root {
   --primary: #16a34a;
   --primary-dark: #15803d;
@@ -13,6 +13,59 @@
   --shadow-sm: 0 1px 2px rgba(16, 24, 40, .05);
   --shadow: 0 1px 3px rgba(16, 24, 40, .08), 0 1px 2px rgba(16, 24, 40, .04);
   --maxw: 1080px;
+
+  /* semantic tokens (referenced by inline styles across components) */
+  --link: #1677ff;
+  --prose: #33343a;
+  --row-border: #eee;
+  --th-bg: #fafafa;
+  --calc-bg: #f7f9fc;
+  --hi-bg: #e8f5e9;        /* "higher amount" highlight on compare pages */
+  --tag-bg: #eef4ff;
+  --tag-text: #1677ff;
+  --header-bg: rgba(255, 255, 255, .9);
+  --input-bg: #fff;
+  --footer-bg: #fff;
+  --c-protein: #4caf50;
+  --c-fat: #f59e0b;
+  --c-carb: #2196f3;
+  --nav-bg: rgba(255, 255, 255, .94);
+  --star: #f5a623;
+  color-scheme: light;
+}
+
+/* Dark mode — opt-in via [data-theme=dark], or auto via system preference when
+   the user hasn't set an explicit preference. */
+[data-theme='dark'] {
+  --primary: #22c55e;
+  --primary-dark: #16a34a;
+  --primary-soft: #123020;
+  --accent: #4d8dff;
+  --bg: #0f1a16;
+  --card: #18241f;
+  --border: #2a3833;
+  --text: #e8efeb;
+  --muted: #9aa8a1;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, .3);
+  --shadow: 0 1px 3px rgba(0, 0, 0, .4), 0 1px 2px rgba(0, 0, 0, .3);
+
+  --link: #6ea8ff;
+  --prose: #cdd6d1;
+  --row-border: #28332e;
+  --th-bg: #131c18;
+  --calc-bg: #131c18;
+  --hi-bg: #1e3a28;
+  --tag-bg: #16324f;
+  --tag-text: #6ea8ff;
+  --header-bg: rgba(15, 26, 22, .9);
+  --input-bg: #131c18;
+  --footer-bg: #131c18;
+  --c-protein: #5bd670;
+  --c-fat: #fbbf24;
+  --c-carb: #4d9bff;
+  --nav-bg: rgba(15, 26, 22, .94);
+  --star: #f5a623;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -25,8 +78,9 @@ body {
   background: var(--bg);
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
+  transition: background .2s, color .2s;
 }
-a { color: var(--accent); text-decoration: none; }
+a { color: var(--link); text-decoration: none; }
 a:hover { text-decoration: underline; }
 h1, h2, h3 { line-height: 1.25; color: var(--text); }
 h1 { font-size: 1.7rem; margin: .4rem 0; }

@@ -21,3 +21,4 @@ npm-debug.log*
 # os
 .DS_Store
 Thumbs.db
+.aider*
