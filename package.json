@@ -5,7 +5,7 @@
   "description": "Bilingual (KO/EN) food nutrition & calorie database with programmatic SEO. Data: USDA (public domain) + 식약처 (제한 없음).",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/fix-sitemap.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "etl:usda": "tsx etl/usda.ts",
