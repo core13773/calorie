@@ -3,7 +3,6 @@ import type { Lang } from '../i18n/ui';
 import { t } from '../i18n/ui';
 import { getNutrientMeta, type FoodDetail } from '../lib/db';
 import { SOURCES, SITE_URL } from '../consts';
-import AdSlot from './AdSlot.astro';
 
 interface Props { food: FoodDetail; lang: Lang }
 const { food, lang } = Astro.props;
@@ -160,8 +159,6 @@ const favName = encodeURIComponent(foodName);
       ))}
     </tbody>
   </table>
-
-  <AdSlot slot="food-mid" />
 
   <div class="calc">
     <h2>🔢 {s.servingCalc}</h2>

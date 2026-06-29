@@ -1,6 +1,6 @@
 # calorie.monster 🥗
 
-Bilingual (KO/EN) food nutrition & calorie database with programmatic SEO. AdSense-monetized content site — the database-driven sibling of fincalc/webtool.
+Bilingual (KO/EN) food nutrition & calorie database with programmatic SEO. HilltopAds-monetized content site — the database-driven sibling of fincalc/webtool.
 
 ## Data sources (license-verified)
 

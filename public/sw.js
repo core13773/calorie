@@ -40,7 +40,7 @@ self.addEventListener('fetch', (e) => {
   const { request } = e;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (url.origin !== self.location.origin) return; // skip cross-origin (adsense etc.)
+  if (url.origin !== self.location.origin) return; // skip cross-origin (ad networks etc.)
 
   // Static assets → cache-first, revalidate in background.
   if (isStatic(url)) {
