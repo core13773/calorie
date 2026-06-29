@@ -174,7 +174,7 @@ const navItems = [
 <style>
   .skip { position: absolute; left: -9999px; top: 0; }
   .skip:focus { left: 1rem; top: 1rem; background: var(--card); padding: .5rem 1rem; border-radius: 8px; z-index: 100; box-shadow: var(--shadow); }
-  .site-header { position: sticky; top: 0; padding-top: env(safe-area-inset-top); background: var(--header-bg); backdrop-filter: saturate(180%) blur(10px); -webkit-backdrop-filter: saturate(180%) blur(10px); border-bottom: 1px solid var(--border); z-index: 50; }
+  .site-header { position: sticky; top: 0; padding-top: env(safe-area-inset-top); background: var(--header-bg); backdrop-filter: saturate(180%) blur(10px); -webkit-backdrop-filter: saturate(180%) blur(10px); border-bottom: 1px solid var(--border); z-index: 2147483645; }
   .hdr-inner { display: flex; align-items: center; justify-content: space-between; gap: .5rem; min-height: 58px; padding: .35rem 1rem; padding-left: max(1rem, env(safe-area-inset-left)); padding-right: max(1rem, env(safe-area-inset-right)); }
   .brand { display: inline-flex; align-items: center; gap: .4rem; font-weight: 800; font-size: 1.15rem; color: var(--primary-dark); white-space: nowrap; }
   .brand:hover { text-decoration: none; }
@@ -207,7 +207,7 @@ const navItems = [
     .main-nav { display: none; }
     .hdr-actions { display: flex; }
     .bottom-nav {
-      display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
+      display: flex; position: fixed; bottom: 0; left: 0; right: 0; z-index: 2147483646; /* above HilltopAds fixed banner where possible */
       background: var(--nav-bg); backdrop-filter: saturate(180%) blur(12px); -webkit-backdrop-filter: saturate(180%) blur(12px);
       border-top: 1px solid var(--border);
       padding-bottom: env(safe-area-inset-bottom);
@@ -219,9 +219,9 @@ const navItems = [
     }
     .bottom-nav a.active { color: var(--primary-dark); }
     .bottom-nav .bn-icon { font-size: 1.25rem; line-height: 1; }
-    /* keep content clear of the fixed bar */
-    .main-inner { padding-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
-    .site-footer { padding-bottom: calc(3rem + env(safe-area-inset-bottom)); }
+    /* keep content clear of the fixed bar + HilltopAds bottom banner (--ad-safe-bottom) */
+    .main-inner { padding-bottom: calc(4.5rem + var(--ad-safe-bottom, 0px) + env(safe-area-inset-bottom)); }
+    .site-footer { padding-bottom: calc(3rem + var(--ad-safe-bottom, 0px) + env(safe-area-inset-bottom)); }
   }
   @media (max-width: 560px) {
     .nl { display: none; }

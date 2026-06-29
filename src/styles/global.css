@@ -31,6 +31,7 @@
   --c-carb: #2196f3;
   --nav-bg: rgba(255, 255, 255, .94);
   --star: #f5a623;
+  --ad-safe-bottom: 64px;   /* HilltopAds 모바일 고정 배너 높이분 — BaseLayout에서 하단 여백으로 사용 */
   color-scheme: light;
 }
 
